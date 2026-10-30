@@ -1,0 +1,102 @@
+<main class="page">
+  <header class="intro">
+    <span class="nc-brand"><mat-icon aria-hidden="true">explore</mat-icon>Newcomer Compass</span>
+    <h1>Tell me about yourself</h1>
+    <p class="lead">
+      Answer a few quick questions and we’ll show the benefits you may qualify for.
+    </p>
+  </header>
+
+  <form class="nc-card questionnaire" (ngSubmit)="submit()" aria-label="About you">
+    <div class="fields">
+      <div class="field">
+        <label for="age">Age</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <input
+            matInput
+            id="age"
+            name="age"
+            type="number"
+            min="0"
+            max="120"
+            inputmode="numeric"
+            [(ngModel)]="profile.age"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="field">
+        <label id="marital-label">Marital status</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-select
+            name="maritalStatus"
+            placeholder="Select"
+            aria-labelledby="marital-label"
+            [(ngModel)]="profile.maritalStatus"
+          >
+            @for (status of maritalStatuses; track status) {
+              <mat-option [value]="status">{{ status }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="field">
+        <label for="children">Number of children</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <input
+            matInput
+            id="children"
+            name="children"
+            type="number"
+            min="0"
+            max="20"
+            inputmode="numeric"
+            [(ngModel)]="profile.children"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="field field-wide">
+        <label id="group-label">Which group do you belong to?</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-select
+            name="group"
+            placeholder="Select your group"
+            aria-labelledby="group-label"
+            [(ngModel)]="profile.group"
+          >
+            @for (group of groups; track group) {
+              <mat-option [value]="group">{{ group }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="field">
+        <label for="years">How many years have you been in Canada?</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <input
+            matInput
+            id="years"
+            name="years"
+            type="number"
+            min="0"
+            max="100"
+            inputmode="numeric"
+            [(ngModel)]="profile.yearsInCanada"
+          />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button mat-flat-button class="submit" type="submit">
+        Submit
+        <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </form>
+
+  <app-chat class="chat" heading="Questions?" />
+</main>

@@ -1,0 +1,112 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: radial-gradient(1200px 500px at 50% -10%, #e6efff 0%, transparent 70%);
+}
+
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.intro {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+
+  h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .lead {
+    margin: 0;
+    color: var(--nc-text-muted);
+    font-size: 1.1875rem;
+  }
+}
+
+.questionnaire {
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns:
+    minmax(90px, 0.7fr) minmax(150px, 1fr) minmax(120px, 0.9fr) minmax(300px, 2.2fr)
+    minmax(150px, 1fr);
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+
+  label {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--nc-text);
+    line-height: 1.35;
+  }
+
+  mat-form-field {
+    width: 100%;
+    font-size: 1.0625rem;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+.submit {
+  min-width: 220px;
+  height: 56px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  border-radius: 28px;
+}
+
+.chat {
+  margin-top: 0.5rem;
+}
+
+// Tablet: two columns, group question across the full width.
+@media (max-width: 1080px) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+// Phone: one column.
+@media (max-width: 600px) {
+  .page {
+    padding-top: 2rem;
+  }
+
+  .questionnaire {
+    padding: 1.5rem;
+  }
+
+  .fields {
+    grid-template-columns: 1fr;
+  }
+}

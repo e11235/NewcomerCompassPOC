@@ -1,0 +1,99 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+        theme-type: light,
+      ),
+      typography: (
+        plain-family: 'Inter, Roboto, system-ui, sans-serif',
+        brand-family: 'Inter, Roboto, system-ui, sans-serif',
+      ),
+      density: 0,
+    )
+  );
+
+  // Softer, rounder form fields to keep the look smooth rather than blocky.
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: 14px,
+    )
+  );
+
+  // Shared design tokens used by the component styles.
+  --nc-bg: #f5f7fb;
+  --nc-surface: #ffffff;
+  --nc-border: #e3e8ef;
+  --nc-text: #1b2430;
+  --nc-text-muted: #4b5563;
+  --nc-accent: #d52b1e; // maple red, used sparingly
+  --nc-radius-lg: 24px;
+  --nc-radius-md: 16px;
+  --nc-shadow: 0 1px 2px rgb(16 24 40 / 4%), 0 8px 24px rgb(16 24 40 / 6%);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--nc-bg);
+  color: var(--nc-text);
+  font-family: Inter, Roboto, system-ui, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.nc-card {
+  background: var(--nc-surface);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-lg);
+  box-shadow: var(--nc-shadow);
+}
+
+.nc-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--nc-text-muted);
+  letter-spacing: 0.01em;
+
+  mat-icon {
+    color: var(--nc-accent);
+  }
+}
+
+// Thin, rounded scrollbars for the scrollable panes.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c7ced9 transparent;
+}

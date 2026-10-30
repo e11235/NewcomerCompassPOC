@@ -1,0 +1,142 @@
+:host {
+  display: block;
+}
+
+// Results take ~70% of the width, chat fills the remaining ~30%.
+// Each column spans the full viewport height and scrolls on its own.
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(340px, 3fr);
+  height: 100dvh;
+}
+
+.results {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.results-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 2.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+
+  h1 {
+    font-size: clamp(2rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  a {
+    font-size: 1rem;
+  }
+}
+
+.section {
+  padding: 2rem;
+
+  h2 {
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+  }
+}
+
+.benefit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--nc-radius-md);
+    background: #f6f9fe;
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+}
+
+.check {
+  color: #1f8a4c;
+  flex-shrink: 0;
+  font-variation-settings: 'FILL' 1;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem 0;
+
+  & + .step {
+    border-top: 1px solid var(--nc-border);
+  }
+
+  h3 {
+    font-size: 1.1875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--nc-text-muted);
+  }
+}
+
+.step-number {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.chat-column {
+  height: 100dvh;
+  min-height: 0;
+}
+
+// Small screens: stack the chat below the results.
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .results {
+    overflow: visible;
+  }
+
+  .results-inner {
+    padding: 1.25rem 1.25rem 2rem;
+  }
+
+  .chat-column {
+    height: 80dvh;
+  }
+}

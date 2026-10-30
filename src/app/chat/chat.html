@@ -1,0 +1,35 @@
+<section class="chat" [attr.aria-labelledby]="headingId">
+  <header class="chat-header">
+    <span class="avatar" aria-hidden="true"><mat-icon>explore</mat-icon></span>
+    <h2 [id]="headingId">{{ heading() }}</h2>
+  </header>
+
+  <div class="history" #history role="log" aria-live="polite">
+    @for (message of store.messages(); track message.id) {
+      <p class="bubble" [class.user]="message.from === 'user'">{{ message.text }}</p>
+    }
+  </div>
+
+  <form class="composer" (ngSubmit)="send()">
+    <label class="visually-hidden" [for]="inputId">Type your question</label>
+    <textarea
+      [id]="inputId"
+      name="draft"
+      placeholder="Ask a question…"
+      cdkTextareaAutosize
+      cdkAutosizeMinRows="1"
+      cdkAutosizeMaxRows="5"
+      [(ngModel)]="draft"
+      (keydown)="onKeydown($event)"
+    ></textarea>
+    <button
+      mat-icon-button
+      class="send"
+      type="submit"
+      aria-label="Submit question"
+      [disabled]="!draft().trim()"
+    >
+      <mat-icon>arrow_upward</mat-icon>
+    </button>
+  </form>
+</section>
