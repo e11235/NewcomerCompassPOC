@@ -17,7 +17,10 @@
           @for (benefit of benefits; track benefit) {
             <li>
               <mat-icon class="check" aria-hidden="true">check_circle</mat-icon>
-              {{ t().benefits[benefit] }}
+              <div>
+                <span class="benefit-name">{{ t().benefits[benefit] }}</span>
+                <span class="benefit-description">{{ t().benefitDescriptions[benefit] }}</span>
+              </div>
             </li>
           }
         </ul>

@@ -94,9 +94,17 @@
             [placeholder]="t().questionnaire.groupPlaceholder"
             aria-labelledby="group-label"
             [(ngModel)]="profile.group"
+            panelClass="group-panel"
           >
+            <!-- The closed box shows just the group name; the list also shows a short explanation. -->
+            <mat-select-trigger>{{ profile.group() ? t().groups[profile.group()!] : '' }}</mat-select-trigger>
             @for (group of groups; track group) {
-              <mat-option [value]="group">{{ t().groups[group] }}</mat-option>
+              <mat-option [value]="group">
+                <span class="group-name">{{ t().groups[group] }}</span>
+                @if (t().groupHints; as hints) {
+                  <span class="group-hint">{{ hints[group] }}</span>
+                }
+              </mat-option>
             }
           </mat-select>
         </mat-form-field>

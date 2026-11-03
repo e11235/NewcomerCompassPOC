@@ -61,14 +61,31 @@
 
   li {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.875rem;
     padding: 0.875rem 1rem;
     border-radius: var(--nc-radius-md);
     background: #f6f9fe;
-    font-size: 1.125rem;
-    font-weight: 500;
   }
+
+  .check {
+    margin-top: 0.125rem; // line up with the first line of the name
+  }
+}
+
+.benefit-name {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.benefit-description {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--nc-text-muted);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .check {

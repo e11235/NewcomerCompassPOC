@@ -133,3 +133,25 @@ h3 {
     font-size: 1.25rem;
   }
 }
+
+// Group dropdown: name on top, short plain-language explanation underneath.
+.group-panel {
+  .mat-mdc-option {
+    padding-block: 0.625rem;
+  }
+
+  .mat-mdc-option .mdc-list-item__primary-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.35;
+  }
+
+  .group-name {
+    font-weight: 600;
+  }
+
+  .group-hint {
+    font-size: 0.9375rem;
+    color: var(--nc-text-muted);
+  }
+}
