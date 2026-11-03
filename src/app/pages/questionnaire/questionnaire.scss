@@ -5,9 +5,11 @@
 }
 
 .page {
+  box-sizing: border-box;
+  min-height: 100dvh;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 3rem 1.5rem 4rem;
+  padding: 3rem 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -81,7 +83,14 @@
   border-radius: 28px;
 }
 
+// The chat fills whatever vertical space is left so the composer is always
+// visible without scrolling, regardless of how tall the browser's viewport is
+// (Edge's toolbar is taller than Chrome's/Firefox's). On short viewports the
+// min-height kicks in and the page scrolls normally.
 .chat {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 320px;
   margin-top: 0.5rem;
 }
 
