@@ -2,36 +2,36 @@
   <main class="results">
     <div class="results-inner">
       <header class="top-bar">
-        <span class="nc-brand"><mat-icon aria-hidden="true">explore</mat-icon>Newcomer Compass</span>
+        <span class="nc-brand"><mat-icon aria-hidden="true">explore</mat-icon>{{ t().brand }}</span>
         <a mat-button routerLink="/">
-          <mat-icon>arrow_back</mat-icon>
-          Edit my answers
+          <mat-icon class="flip-rtl">arrow_back</mat-icon>
+          {{ t().results.editAnswers }}
         </a>
       </header>
 
-      <h1>Results</h1>
+      <h1>{{ t().results.heading }}</h1>
 
       <section class="nc-card section" aria-labelledby="qualify-heading">
-        <h2 id="qualify-heading">List of benefits you qualify for</h2>
+        <h2 id="qualify-heading">{{ t().results.qualifyHeading }}</h2>
         <ul class="benefit-list">
-          @for (benefit of benefits; track benefit.id) {
+          @for (benefit of benefits; track benefit) {
             <li>
               <mat-icon class="check" aria-hidden="true">check_circle</mat-icon>
-              {{ benefit.name }}
+              {{ t().benefits[benefit] }}
             </li>
           }
         </ul>
       </section>
 
       <section class="nc-card section" aria-labelledby="access-heading">
-        <h2 id="access-heading">How to access these benefits</h2>
+        <h2 id="access-heading">{{ t().results.accessHeading }}</h2>
         <div class="steps">
-          @for (benefit of benefits; track benefit.id; let i = $index) {
-            <article class="step" [attr.aria-labelledby]="benefit.id">
+          @for (benefit of benefits; track benefit; let i = $index) {
+            <article class="step" [attr.aria-labelledby]="'benefit-' + benefit">
               <span class="step-number" aria-hidden="true">{{ i + 1 }}</span>
               <div>
-                <h3 [id]="benefit.id">{{ benefit.name }}</h3>
-                <p>{{ benefit.details }}</p>
+                <h3 [id]="'benefit-' + benefit">{{ t().benefits[benefit] }}</h3>
+                <p>{{ t().results.benefitDetails(t().benefits[benefit]) }}</p>
               </div>
             </article>
           }
@@ -40,7 +40,7 @@
     </div>
   </main>
 
-  <aside class="chat-column" aria-label="Chat">
-    <app-chat variant="panel" heading="Questions?" />
+  <aside class="chat-column" [attr.aria-label]="t().chat.regionLabel">
+    <app-chat variant="panel" />
   </aside>
 </div>

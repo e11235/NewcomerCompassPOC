@@ -30,16 +30,24 @@
 
   .lead {
     margin: 0;
+    max-width: 50rem; // keeps longer translations clear of the language button
     color: var(--nc-text-muted);
     font-size: 1.1875rem;
+    text-wrap: balance;
   }
 }
 
-// Full-width row so the language button can sit at its left edge, vertically
-// centred on the title, in the otherwise empty space.
+// Full-width row so the language button can sit at its start edge (left, or
+// right in Arabic), vertically centred on the title, in the otherwise empty space.
 .title-row {
   position: relative;
   align-self: stretch;
+
+  // Reserve the button's space on both sides so the title stays centred and
+  // longer translations wrap instead of running underneath it.
+  h1 {
+    padding-inline: 8.5rem;
+  }
 }
 
 // Absolutely positioned so it doesn't shift the existing layout. Centred with
@@ -47,7 +55,7 @@
 // `transform` on the host element.
 .language-toggle {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   bottom: 0;
   height: fit-content;
@@ -156,6 +164,10 @@
 
 // Not enough room beside the title: put the button above it instead.
 @media (max-width: 1000px) {
+  .title-row h1 {
+    padding-inline: 0;
+  }
+
   .title-row {
     display: flex;
     flex-direction: column;

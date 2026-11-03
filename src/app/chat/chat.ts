@@ -3,6 +3,7 @@ import { Component, ElementRef, inject, input, signal, viewChild } from '@angula
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { I18n } from '../i18n/i18n';
 import { ChatStore } from '../state/chat-store';
 
 let nextChatId = 0;
@@ -23,8 +24,8 @@ let nextChatId = 0;
 })
 export class Chat {
   readonly variant = input<'inline' | 'panel'>('inline');
-  readonly heading = input('Questions?');
 
+  protected readonly t = inject(I18n).t;
   protected readonly store = inject(ChatStore);
   protected readonly draft = signal('');
   private readonly uid = nextChatId++;

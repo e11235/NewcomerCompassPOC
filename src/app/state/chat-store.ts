@@ -8,18 +8,13 @@ export interface ChatMessage {
 
 /**
  * Shared chat history for both pages. There is no backend yet: sent questions
- * are only added to the history so the layout can be reviewed.
+ * are only added to the history so the layout can be reviewed. The greeting
+ * isn't stored here; the chat renders it in the current language.
  */
 @Injectable({ providedIn: 'root' })
 export class ChatStore {
   private nextId = 1;
-  private readonly history = signal<ChatMessage[]>([
-    {
-      id: 0,
-      from: 'assistant',
-      text: 'Hi! I can help you understand which benefits may apply to you. What would you like to know?',
-    },
-  ]);
+  private readonly history = signal<ChatMessage[]>([]);
 
   readonly messages = this.history.asReadonly();
 

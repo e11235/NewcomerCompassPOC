@@ -11,8 +11,8 @@ html {
         theme-type: light,
       ),
       typography: (
-        plain-family: 'Inter, Roboto, system-ui, sans-serif',
-        brand-family: 'Inter, Roboto, system-ui, sans-serif',
+        plain-family: 'Inter, "Noto Sans Arabic", Roboto, system-ui, sans-serif',
+        brand-family: 'Inter, "Noto Sans Arabic", Roboto, system-ui, sans-serif',
       ),
       density: 0,
     )
@@ -46,7 +46,7 @@ body {
   margin: 0;
   background: var(--nc-bg);
   color: var(--nc-text);
-  font-family: Inter, Roboto, system-ui, sans-serif;
+  font-family: Inter, 'Noto Sans Arabic', Roboto, system-ui, sans-serif;
   font-size: 1.125rem;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -90,6 +90,11 @@ h3 {
   mat-icon {
     color: var(--nc-accent);
   }
+}
+
+// Directional icons (arrows) point the other way in right-to-left languages.
+[dir='rtl'] .flip-rtl {
+  transform: scaleX(-1);
 }
 
 // Thin, rounded scrollbars for the scrollable panes.

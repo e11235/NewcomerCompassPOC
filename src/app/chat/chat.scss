@@ -22,7 +22,8 @@
 
 :host(.panel) .chat {
   border-radius: 0;
-  border-width: 0 0 0 1px;
+  border-width: 0;
+  border-inline-start-width: 1px;
   box-shadow: none;
   background: linear-gradient(180deg, #f2f6fd 0%, #ffffff 40%);
 }
@@ -70,7 +71,8 @@
   margin: 0;
   max-width: 85%;
   padding: 0.75rem 1rem;
-  border-radius: 18px 18px 18px 6px;
+  border-radius: 18px;
+  border-end-start-radius: 6px;
   background: #eef2f7;
   color: var(--nc-text);
   white-space: pre-wrap;
@@ -80,7 +82,8 @@
 
   &.user {
     align-self: flex-end;
-    border-radius: 18px 18px 6px 18px;
+    border-radius: 18px;
+    border-end-end-radius: 6px;
     background: var(--mat-sys-primary);
     color: var(--mat-sys-on-primary);
   }
@@ -91,7 +94,8 @@
   align-items: flex-end;
   gap: 0.5rem;
   margin: 0.75rem 1rem 1rem;
-  padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+  padding: 0.5rem;
+  padding-inline-start: 1.25rem;
   background: var(--nc-surface);
   border: 1px solid #cfd7e3;
   border-radius: 26px;
