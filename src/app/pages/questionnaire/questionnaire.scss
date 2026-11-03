@@ -35,6 +35,66 @@
   }
 }
 
+// Full-width row so the language button can sit at its left edge, vertically
+// centred on the title, in the otherwise empty space.
+.title-row {
+  position: relative;
+  align-self: stretch;
+}
+
+// Absolutely positioned so it doesn't shift the existing layout. Centred with
+// auto margins rather than transform, because Material's ripple styles set
+// `transform` on the host element.
+.language-toggle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: fit-content;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 112px;
+  padding: 0.875rem 1.25rem;
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-md);
+  background: var(--nc-surface);
+  box-shadow: var(--nc-shadow);
+  color: var(--mat-sys-primary);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden; // keep the click ripple inside the rounded corners
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    scale 100ms ease;
+
+  mat-icon {
+    font-size: 2.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  &:hover {
+    background: #eef3fc;
+    border-color: #c9d7f0;
+  }
+
+  &:active {
+    background: #e1eafa;
+    scale: 0.96;
+  }
+
+  &:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
+    outline-offset: 2px;
+  }
+}
+
 .questionnaire {
   padding: 2.5rem;
   display: flex;
@@ -92,6 +152,23 @@
   height: auto;
   min-height: 320px;
   margin-top: 0.5rem;
+}
+
+// Not enough room beside the title: put the button above it instead.
+@media (max-width: 1000px) {
+  .title-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .language-toggle {
+    position: static;
+    margin: 0;
+    flex-direction: row;
+    padding: 0.625rem 1.25rem;
+  }
 }
 
 // Tablet: two columns, group question across the full width.

@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatRippleModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -17,6 +18,7 @@ import { MARITAL_STATUSES, NEWCOMER_GROUPS, ProfileStore } from '../../state/pro
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatRippleModule,
     MatSelectModule,
     Chat,
   ],
