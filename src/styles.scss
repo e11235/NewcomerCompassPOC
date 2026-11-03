@@ -97,3 +97,34 @@ h3 {
   scrollbar-width: thin;
   scrollbar-color: #c7ced9 transparent;
 }
+
+// Language switcher dropdown (rendered in an overlay, so styled globally).
+.language-menu {
+  --mat-menu-container-color: var(--nc-surface);
+  --mat-menu-container-shape: var(--nc-radius-md);
+  --mat-menu-item-label-text-size: 1.125rem;
+  --mat-menu-item-label-text-weight: 500;
+  --mat-menu-item-label-text-color: var(--nc-text);
+
+  min-width: 200px !important;
+  border: 1px solid var(--nc-border);
+
+  .mat-mdc-menu-item {
+    min-height: 52px;
+  }
+
+  // Every row reserves the checkmark's space so the labels line up.
+  .language-check {
+    color: var(--mat-sys-primary);
+    visibility: hidden;
+
+    &.selected {
+      visibility: visible;
+    }
+  }
+
+  // Arabic script reads small at the same font size as Latin text.
+  [lang='ar'] {
+    font-size: 1.25rem;
+  }
+}

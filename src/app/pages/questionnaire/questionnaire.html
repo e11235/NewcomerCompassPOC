@@ -2,11 +2,36 @@
   <header class="intro">
     <span class="nc-brand"><mat-icon aria-hidden="true">explore</mat-icon>Newcomer Compass</span>
     <div class="title-row">
-      <!-- Placeholder: language switching is not wired up yet (layout evaluation only). -->
-      <button type="button" class="language-toggle" matRipple aria-label="Change language">
+      <!-- Placeholder: picking a language only records the choice; the page isn't translated yet. -->
+      <button
+        type="button"
+        class="language-toggle"
+        matRipple
+        aria-label="Change language"
+        [matMenuTriggerFor]="languageMenu"
+      >
         <mat-icon aria-hidden="true">translate</mat-icon>
         <span>Language</span>
       </button>
+      <mat-menu #languageMenu="matMenu" class="language-menu">
+        @for (language of languages; track language.code) {
+          <button
+            mat-menu-item
+            type="button"
+            role="menuitemradio"
+            [attr.aria-checked]="language.code === selectedLanguage()"
+            (click)="selectedLanguage.set(language.code)"
+          >
+            <mat-icon
+              class="language-check"
+              [class.selected]="language.code === selectedLanguage()"
+              aria-hidden="true"
+              >check</mat-icon
+            >
+            <span [attr.lang]="language.code" [attr.dir]="language.dir">{{ language.label }}</span>
+          </button>
+        }
+      </mat-menu>
       <h1>Tell me about yourself</h1>
     </div>
     <p class="lead">
