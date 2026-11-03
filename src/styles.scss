@@ -11,30 +11,52 @@ html {
         theme-type: light,
       ),
       typography: (
-        plain-family: 'Inter, "Noto Sans Arabic", Roboto, system-ui, sans-serif',
-        brand-family: 'Inter, "Noto Sans Arabic", Roboto, system-ui, sans-serif',
+        plain-family: '"Noto Sans", "Noto Sans Arabic", system-ui, sans-serif',
+        brand-family: 'Lato, "Noto Sans Arabic", system-ui, sans-serif',
       ),
       density: 0,
     )
   );
 
-  // Softer, rounder form fields to keep the look smooth rather than blocky.
-  @include mat.form-field-overrides(
+  // Government of Canada (Canada.ca) colours on top of the Material theme.
+  @include mat.theme-overrides(
     (
-      outlined-container-shape: 14px,
+      primary: #26374a,
+      on-primary: #ffffff,
+      primary-container: #e8ecf1,
+      on-primary-container: #26374a,
+      surface-tint: transparent,
     )
   );
 
+  // Squarer, Canada.ca-style form fields.
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: 4px,
+      outlined-outline-color: #6f6f6f,
+    )
+  );
+
+  // Government of Canada palette (Canada.ca / GC Design System).
+  --gc-blue: #26374a; // header/footer and primary buttons
+  --gc-blue-hover: #1c578a;
+  --gc-link: #284162;
+  --gc-link-hover: #0535d2;
+  --gc-focus: #0535d2;
+  --gc-red: #af3c43; // accent bar under page titles
+  --gc-success: #278400;
+  --gc-alt-bg: #f8f8f8; // light grey bands (footer, side panel)
+
   // Shared design tokens used by the component styles.
-  --nc-bg: #f5f7fb;
+  --nc-bg: #ffffff;
   --nc-surface: #ffffff;
-  --nc-border: #e3e8ef;
-  --nc-text: #1b2430;
-  --nc-text-muted: #4b5563;
-  --nc-accent: #d52b1e; // maple red, used sparingly
-  --nc-radius-lg: 24px;
-  --nc-radius-md: 16px;
-  --nc-shadow: 0 1px 2px rgb(16 24 40 / 4%), 0 8px 24px rgb(16 24 40 / 6%);
+  --nc-border: #d6d6d6;
+  --nc-text: #333333;
+  --nc-text-muted: #595959;
+  --nc-accent: var(--gc-red);
+  --nc-radius-lg: 6px;
+  --nc-radius-md: 4px;
+  --nc-shadow: none;
 }
 
 html,
@@ -46,7 +68,7 @@ body {
   margin: 0;
   background: var(--nc-bg);
   color: var(--nc-text);
-  font-family: Inter, 'Noto Sans Arabic', Roboto, system-ui, sans-serif;
+  font-family: 'Noto Sans', 'Noto Sans Arabic', system-ui, sans-serif;
   font-size: 1.125rem;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -55,8 +77,35 @@ body {
 h1,
 h2,
 h3 {
+  font-family: Lato, 'Noto Sans Arabic', system-ui, sans-serif;
+  font-weight: 700;
   line-height: 1.25;
   margin: 0;
+}
+
+// Canada.ca's signature red bar under the page title.
+h1::after {
+  content: '';
+  display: block;
+  width: 72px;
+  height: 6px;
+  margin-top: 0.5rem;
+  background: var(--gc-red);
+}
+
+a:not(.mat-mdc-button-base) {
+  color: var(--gc-link);
+
+  &:hover,
+  &:focus {
+    color: var(--gc-link-hover);
+  }
+}
+
+// Clear, consistent keyboard focus ring, as on Canada.ca.
+:focus-visible {
+  outline: 3px solid var(--gc-focus);
+  outline-offset: 2px;
 }
 
 .visually-hidden {
@@ -82,9 +131,10 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 600;
+  font-family: Lato, 'Noto Sans Arabic', system-ui, sans-serif;
+  font-weight: 700;
   font-size: 1rem;
-  color: var(--nc-text-muted);
+  color: var(--gc-blue);
   letter-spacing: 0.01em;
 
   mat-icon {
@@ -100,7 +150,7 @@ h3 {
 // Thin, rounded scrollbars for the scrollable panes.
 * {
   scrollbar-width: thin;
-  scrollbar-color: #c7ced9 transparent;
+  scrollbar-color: #b3b3b3 transparent;
 }
 
 // Language switcher dropdown (rendered in an overlay, so styled globally).

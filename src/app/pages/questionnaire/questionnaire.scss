@@ -1,18 +1,21 @@
+// Header, page and footer together fill the window; the chat takes whatever
+// height is left, so the footer is visible without scrolling.
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-height: 100dvh;
-  background: radial-gradient(1200px 500px at 50% -10%, #e6efff 0%, transparent 70%);
 }
 
 .page {
   box-sizing: border-box;
-  min-height: 100dvh;
+  flex: 1 0 auto;
+  width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 3rem 1.5rem 1.5rem;
+  padding: 1.25rem 1.5rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .intro {
@@ -23,16 +26,23 @@
   gap: 0.75rem;
 
   h1 {
-    font-size: clamp(2rem, 4vw, 2.75rem);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: clamp(1.875rem, 3.5vw, 2.375rem);
+
+    // Centre the Canada.ca red title bar under the centred title.
+    &::after {
+      margin-inline: auto;
+    }
   }
 
+  // Same reserved side space as the title, so longer translations stay clear of
+  // the language button.
   .lead {
+    box-sizing: border-box;
+    max-width: 100%;
     margin: 0;
-    max-width: 50rem; // keeps longer translations clear of the language button
+    padding-inline: 8.5rem;
     color: var(--nc-text-muted);
-    font-size: 1.1875rem;
+    font-size: 1.125rem;
     text-wrap: balance;
   }
 }
@@ -64,13 +74,13 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  min-width: 112px;
-  padding: 0.875rem 1.25rem;
+  min-width: 104px;
+  padding: 0.5rem 1rem;
   border: 1px solid var(--nc-border);
   border-radius: var(--nc-radius-md);
   background: var(--nc-surface);
   box-shadow: var(--nc-shadow);
-  color: var(--mat-sys-primary);
+  color: var(--gc-link);
   font: inherit;
   font-size: 1rem;
   font-weight: 600;
@@ -82,32 +92,28 @@
     scale 100ms ease;
 
   mat-icon {
-    font-size: 2.25rem;
-    width: 2.25rem;
-    height: 2.25rem;
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   &:hover {
-    background: #eef3fc;
-    border-color: #c9d7f0;
+    background: #e8ecf1;
+    border-color: var(--gc-blue);
+    color: var(--gc-link-hover);
   }
 
   &:active {
-    background: #e1eafa;
+    background: #d7dee6;
     scale: 0.96;
-  }
-
-  &:focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
-    outline-offset: 2px;
   }
 }
 
 .questionnaire {
-  padding: 2.5rem;
+  padding: 1.5rem 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 .fields {
@@ -145,10 +151,14 @@
 
 .submit {
   min-width: 220px;
-  height: 56px;
+  height: 48px;
   font-size: 1.125rem;
   font-weight: 600;
-  border-radius: 28px;
+  border-radius: var(--nc-radius-md);
+
+  &:hover {
+    --mat-button-filled-container-color: var(--gc-blue-hover);
+  }
 }
 
 // The chat fills whatever vertical space is left so the composer is always
@@ -158,13 +168,13 @@
 .chat {
   flex: 1 1 0;
   height: auto;
-  min-height: 320px;
-  margin-top: 0.5rem;
+  min-height: 200px;
 }
 
 // Not enough room beside the title: put the button above it instead.
 @media (max-width: 1000px) {
-  .title-row h1 {
+  .title-row h1,
+  .intro .lead {
     padding-inline: 0;
   }
 
@@ -206,5 +216,10 @@
 
   .fields {
     grid-template-columns: 1fr;
+  }
+
+  // The page scrolls on phones anyway, so give the chat a comfortable height.
+  .chat {
+    min-height: 360px;
   }
 }

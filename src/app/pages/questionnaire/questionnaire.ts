@@ -9,6 +9,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { Chat } from '../../chat/chat';
+import { GcFooter, GcHeader } from '../../gc-layout/gc-layout';
 import { I18n } from '../../i18n/i18n';
 import { MARITAL_STATUSES, NEWCOMER_GROUPS, ProfileStore } from '../../state/profile-store';
 
@@ -24,6 +25,8 @@ import { MARITAL_STATUSES, NEWCOMER_GROUPS, ProfileStore } from '../../state/pro
     MatRippleModule,
     MatSelectModule,
     Chat,
+    GcFooter,
+    GcHeader,
   ],
   templateUrl: './questionnaire.html',
   styleUrl: './questionnaire.scss',

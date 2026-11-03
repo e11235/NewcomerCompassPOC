@@ -44,6 +44,19 @@ export interface Translations {
   benefits: Record<BenefitId, string>;
   /** One plain-language line explaining each benefit. */
   benefitDescriptions: Record<BenefitId, string>;
+  header: { signatureAlt: string };
+  footer: {
+    wordmarkAlt: string;
+    dateModified: string;
+    linksLabel: string;
+    links: {
+      socialMedia: string;
+      mobileApps: string;
+      aboutSite: string;
+      terms: string;
+      privacy: string;
+    };
+  };
   chat: {
     heading: string;
     regionLabel: string;
@@ -109,6 +122,19 @@ const en: Translations = {
     dentalCare: 'Helps pay for visits to the dentist if you don’t have dental insurance.',
     learningBond:
       'Money from the government to help families with lower incomes save for their child’s education after high school.',
+  },
+  header: { signatureAlt: 'Government of Canada' },
+  footer: {
+    wordmarkAlt: 'Symbol of the Government of Canada',
+    dateModified: 'Date modified:',
+    linksLabel: 'About this site',
+    links: {
+      socialMedia: 'Social media',
+      mobileApps: 'Mobile applications',
+      aboutSite: 'About Canada.ca',
+      terms: 'Terms and conditions',
+      privacy: 'Privacy',
+    },
   },
   chat: {
     heading: 'Questions?',
@@ -178,6 +204,19 @@ const fr: Translations = {
     learningBond:
       'De l’argent du gouvernement pour aider les familles à faible revenu à épargner pour les études de leur enfant après le secondaire.',
   },
+  header: { signatureAlt: 'Gouvernement du Canada' },
+  footer: {
+    wordmarkAlt: 'Symbole du gouvernement du Canada',
+    dateModified: 'Date de modification :',
+    linksLabel: 'À propos de ce site',
+    links: {
+      socialMedia: 'Médias sociaux',
+      mobileApps: 'Applications mobiles',
+      aboutSite: 'À propos de Canada.ca',
+      terms: 'Avis',
+      privacy: 'Confidentialité',
+    },
+  },
   chat: {
     heading: 'Des questions ?',
     regionLabel: 'Clavardage',
@@ -237,6 +276,19 @@ const ar: Translations = {
     workersBenefit: 'أموال للأشخاص الذين يعملون ولكن دخلهم منخفض.',
     dentalCare: 'تساعد في دفع تكاليف زيارة طبيب الأسنان إذا لم يكن لديك تأمين على الأسنان.',
     learningBond: 'أموال من الحكومة لمساعدة العائلات ذات الدخل المنخفض على الادخار لتعليم أطفالها بعد المرحلة الثانوية.',
+  },
+  header: { signatureAlt: 'حكومة كندا' },
+  footer: {
+    wordmarkAlt: 'رمز حكومة كندا',
+    dateModified: 'تاريخ التعديل:',
+    linksLabel: 'حول هذا الموقع',
+    links: {
+      socialMedia: 'وسائل التواصل الاجتماعي',
+      mobileApps: 'تطبيقات الهاتف المحمول',
+      aboutSite: 'حول Canada.ca',
+      terms: 'الشروط والأحكام',
+      privacy: 'الخصوصية',
+    },
   },
   chat: {
     heading: 'هل لديك أسئلة؟',

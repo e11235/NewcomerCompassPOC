@@ -1,21 +1,29 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
 }
 
 // Results take ~70% of the width, chat fills the remaining ~30%.
-// Each column spans the full viewport height and scrolls on its own.
+// Below the header, each column fills the rest of the window and scrolls on its own.
 .layout {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(340px, 3fr);
-  height: 100dvh;
 }
 
 .results {
   overflow-y: auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .results-inner {
+  box-sizing: border-box;
+  flex: 1 0 auto;
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem 2.5rem 4rem;
@@ -25,15 +33,13 @@
 
   h1 {
     font-size: clamp(2rem, 3.5vw, 2.5rem);
-    font-weight: 700;
-    letter-spacing: -0.02em;
   }
 }
 
 .top-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 1rem;
 
   a {
@@ -65,7 +71,8 @@
     gap: 0.875rem;
     padding: 0.875rem 1rem;
     border-radius: var(--nc-radius-md);
-    background: #f6f9fe;
+    background: var(--gc-alt-bg);
+    border: 1px solid #e6e6e6;
   }
 
   .check {
@@ -89,7 +96,7 @@
 }
 
 .check {
-  color: #1f8a4c;
+  color: var(--gc-success);
   flex-shrink: 0;
   font-variation-settings: 'FILL' 1;
 }
@@ -134,12 +141,29 @@
 }
 
 .chat-column {
-  height: 100dvh;
   min-height: 0;
+}
+
+// The footer sits at the end of the results column on wide screens (so it
+// never covers the chat panel), and at the very end of the page on small ones.
+.footer-page {
+  display: none;
 }
 
 // Small screens: stack the chat below the results.
 @media (max-width: 860px) {
+  :host {
+    height: auto;
+  }
+
+  .footer-column {
+    display: none;
+  }
+
+  .footer-page {
+    display: block;
+  }
+
   .layout {
     grid-template-columns: 1fr;
     height: auto;
