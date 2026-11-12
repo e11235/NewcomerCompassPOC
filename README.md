@@ -13,24 +13,30 @@ Requires Node.js 20.19+ or 22.12+.
 ```bash
 npm install
 npm start          # opens http://localhost:4200
+npm run lint       # ESLint, including Angular template accessibility rules
 ```
 
 ## Pages
 
 | Route      | What it shows                                                                 |
 | ---------- | ----------------------------------------------------------------------------- |
-| `/`        | "Tell me about yourself" questionnaire, **Submit** button, "Questions?" chat |
+| `/`        | "What do you need help with today?": pick a situation, answer 7 short steps, review, then **Show my benefits**. Chat in a side panel the user can hide (overlay below 900px) |
 | `/results` | Benefits list and how to access them (≈70% width) with a full-height chat panel (≈30%) |
 
 ## Structure
 
 ```
 src/app/
-  chat/                 Reusable chat window (inline on page 1, side panel on page 2)
-  pages/questionnaire/  Entry page
+  chat/                 Reusable chat window, and the collapsible side panel used on page 1
+  pages/questionnaire/  Entry page: situation picker, question steps and answer summary
+    questionnaire-config.ts   All situations, questions and options (English, French, Arabic)
   pages/results/        Results page
   state/                Signal-based stores for questionnaire answers and chat history
 ```
+
+To change the questionnaire's wording, questions or options, edit
+`src/app/pages/questionnaire/questionnaire-config.ts`. Answers are kept in memory only: they are
+never logged, stored in the browser or sent anywhere.
 
 Sending a chat message only adds it to the history. Nothing replies yet. The history is
 shared between both pages.
