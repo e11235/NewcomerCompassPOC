@@ -1,0 +1,28 @@
+<ul class="grid" id="situation-grid" [attr.aria-label]="t().questionnaire.situationsLabel">
+  @for (situation of situations; track situation.id) {
+    @let isSelected = selected() === situation.id;
+    <li>
+      <button
+        type="button"
+        class="card"
+        [class.selected]="isSelected"
+        [attr.aria-pressed]="isSelected"
+        (click)="choose(situation)"
+      >
+        <span class="card-title">{{ situation.title[i18n.lang()] }}</span>
+        <span class="card-description">{{ situation.description[i18n.lang()] }}</span>
+        @if (isSelected) {
+          <mat-icon class="check" aria-hidden="true">check_circle</mat-icon>
+          @if (comingSoon()) {
+            <!-- Announced through the live region below, so hidden here to avoid repeating it. -->
+            <span class="note" aria-hidden="true">{{ t().questionnaire.comingSoon }}</span>
+          }
+        }
+      </button>
+    </li>
+  }
+</ul>
+
+<p class="visually-hidden" aria-live="polite">
+  {{ comingSoon() ? t().questionnaire.comingSoon : '' }}
+</p>

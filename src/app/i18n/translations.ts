@@ -19,6 +19,26 @@ export interface Translations {
   questionnaire: {
     title: string;
     lead: string;
+    situationsLabel: string;
+    comingSoon: string;
+    change: string;
+    changeLabel: string;
+    stepProgress: (step: number, total: number) => string;
+    back: string;
+    continue: string;
+    continueHint: string;
+    optional: string;
+    choose: string;
+    postalTrimmed: string;
+    summaryHeading: string;
+    showAll: (hiddenCount: number) => string;
+    showFewer: string;
+    changeAnswer: string;
+    changeStep: (stepTitle: string) => string;
+    notAnswered: string;
+    reviewHeading: string;
+    reviewLead: string;
+    submit: string;
     formLabel: string;
     age: string;
     maritalStatus: string;
@@ -27,7 +47,6 @@ export interface Translations {
     group: string;
     groupPlaceholder: string;
     years: string;
-    submit: string;
   };
   maritalStatuses: Record<MaritalStatus, string>;
   groups: Record<NewcomerGroup, string>;
@@ -77,6 +96,26 @@ const en: Translations = {
   questionnaire: {
     title: 'Tell me about yourself',
     lead: 'Answer a few short questions. Then we’ll show you the government benefits you may be able to get.',
+    situationsLabel: 'Situations',
+    comingSoon: 'Coming soon. Only the first option is available in this prototype.',
+    change: 'Change',
+    changeLabel: 'Change your situation',
+    stepProgress: (step, total) => `Step ${step} of ${total}`,
+    back: 'Back',
+    continue: 'Continue',
+    continueHint: 'Answer the questions on this step to continue.',
+    optional: '(optional)',
+    choose: 'Choose…',
+    postalTrimmed: 'We kept only the first three characters of your postal code.',
+    summaryHeading: 'Your answers',
+    showAll: (n) => `Show all answers (${n} more)`,
+    showFewer: 'Show fewer answers',
+    changeAnswer: 'change',
+    changeStep: (title) => `Change answers for: ${title}`,
+    notAnswered: 'Not answered',
+    reviewHeading: 'Check your answers',
+    reviewLead: 'You can change any answer before you see your benefits.',
+    submit: 'Show my benefits',
     formLabel: 'About you',
     age: 'Age',
     maritalStatus: 'Married or single?',
@@ -85,7 +124,6 @@ const en: Translations = {
     group: 'Which group do you belong to?',
     groupPlaceholder: 'Choose your group',
     years: 'How many years have you been in Canada?',
-    submit: 'Show my benefits',
   },
   maritalStatuses: { married: 'Married', single: 'Single' },
   groups: {
@@ -160,6 +198,26 @@ const fr: Translations = {
   questionnaire: {
     title: 'Parlez-moi de vous',
     lead: 'Répondez à quelques questions courtes. Ensuite, nous vous montrerons les prestations du gouvernement que vous pourriez recevoir.',
+    situationsLabel: 'Situations',
+    comingSoon: 'Bientôt offert. Seule la première option est disponible dans ce prototype.',
+    change: 'Modifier',
+    changeLabel: 'Modifier votre situation',
+    stepProgress: (step, total) => `Étape ${step} de ${total}`,
+    back: 'Retour',
+    continue: 'Continuer',
+    continueHint: 'Répondez aux questions de cette étape pour continuer.',
+    optional: '(facultatif)',
+    choose: 'Choisir…',
+    postalTrimmed: 'Nous avons gardé seulement les trois premiers caractères de votre code postal.',
+    summaryHeading: 'Vos réponses',
+    showAll: (n) => `Afficher toutes les réponses (${n} de plus)`,
+    showFewer: 'Afficher moins de réponses',
+    changeAnswer: 'modifier',
+    changeStep: (title) => `Modifier les réponses : ${title}`,
+    notAnswered: 'Sans réponse',
+    reviewHeading: 'Vérifiez vos réponses',
+    reviewLead: 'Vous pouvez modifier vos réponses avant de voir vos prestations.',
+    submit: 'Voir mes prestations',
     formLabel: 'À propos de vous',
     age: 'Âge',
     maritalStatus: 'Marié(e) ou célibataire ?',
@@ -168,7 +226,6 @@ const fr: Translations = {
     group: 'À quel groupe appartenez-vous ?',
     groupPlaceholder: 'Choisissez votre groupe',
     years: 'Depuis combien d’années êtes-vous au Canada ?',
-    submit: 'Voir mes prestations',
   },
   maritalStatuses: { married: 'Marié(e)', single: 'Célibataire' },
   groups: {
@@ -244,6 +301,26 @@ const ar: Translations = {
   questionnaire: {
     title: 'أخبرنا عن نفسك',
     lead: 'أجب عن بعض الأسئلة السريعة وسنعرض لك المزايا التي قد تكون مؤهلاً لها.',
+    situationsLabel: 'الحالات',
+    comingSoon: 'قريبًا. الخيار الأول فقط متاح في هذا النموذج الأولي.',
+    change: 'تغيير',
+    changeLabel: 'تغيير حالتك',
+    stepProgress: (step, total) => `الخطوة ${step} من ${total}`,
+    back: 'رجوع',
+    continue: 'متابعة',
+    continueHint: 'أجب عن أسئلة هذه الخطوة للمتابعة.',
+    optional: '(اختياري)',
+    choose: 'اختر…',
+    postalTrimmed: 'احتفظنا فقط بأول ثلاثة أحرف من رمزك البريدي.',
+    summaryHeading: 'إجاباتك',
+    showAll: (n) => `عرض كل الإجابات (${n} أخرى)`,
+    showFewer: 'عرض إجابات أقل',
+    changeAnswer: 'تغيير',
+    changeStep: (title) => `تغيير الإجابات: ${title}`,
+    notAnswered: 'بدون إجابة',
+    reviewHeading: 'راجع إجاباتك',
+    reviewLead: 'يمكنك تغيير أي إجابة قبل أن ترى المزايا.',
+    submit: 'إرسال',
     formLabel: 'معلومات عنك',
     age: 'العمر',
     maritalStatus: 'الحالة الاجتماعية',
@@ -252,7 +329,6 @@ const ar: Translations = {
     group: 'إلى أي فئة تنتمي؟',
     groupPlaceholder: 'اختر فئتك',
     years: 'منذ كم سنة تقيم في كندا؟',
-    submit: 'إرسال',
   },
   maritalStatuses: { married: 'متزوج/ة', single: 'أعزب/عزباء' },
   groups: {
