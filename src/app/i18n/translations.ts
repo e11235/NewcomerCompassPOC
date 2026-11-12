@@ -1,4 +1,4 @@
-import type { BenefitId, MaritalStatus, NewcomerGroup } from '../state/profile-store';
+import type { BenefitId } from '../state/profile-store';
 
 export type LanguageCode = 'en' | 'fr' | 'ar';
 
@@ -39,19 +39,7 @@ export interface Translations {
     reviewHeading: string;
     reviewLead: string;
     submit: string;
-    formLabel: string;
-    age: string;
-    maritalStatus: string;
-    maritalPlaceholder: string;
-    children: string;
-    group: string;
-    groupPlaceholder: string;
-    years: string;
   };
-  maritalStatuses: Record<MaritalStatus, string>;
-  groups: Record<NewcomerGroup, string>;
-  /** Short plain-language explanation shown under each group in the dropdown (null = none yet). */
-  groupHints: Record<NewcomerGroup, string> | null;
   results: {
     editAnswers: string;
     heading: string;
@@ -91,11 +79,11 @@ export interface Translations {
 
 const en: Translations = {
   brand: 'Newcomer Compass',
-  pageTitles: { questionnaire: 'Tell me about yourself', results: 'Your results' },
+  pageTitles: { questionnaire: 'What do you need help with today?', results: 'Your results' },
   language: { button: 'Language', ariaLabel: 'Change language' },
   questionnaire: {
-    title: 'Tell me about yourself',
-    lead: 'Answer a few short questions. Then we’ll show you the government benefits you may be able to get.',
+    title: 'What do you need help with today?',
+    lead: 'Choose the situation closest to yours. We will ask only the questions that matter for it.',
     situationsLabel: 'Situations',
     comingSoon: 'Coming soon. Only the first option is available in this prototype.',
     change: 'Change',
@@ -116,29 +104,6 @@ const en: Translations = {
     reviewHeading: 'Check your answers',
     reviewLead: 'You can change any answer before you see your benefits.',
     submit: 'Show my benefits',
-    formLabel: 'About you',
-    age: 'Age',
-    maritalStatus: 'Married or single?',
-    maritalPlaceholder: 'Choose',
-    children: 'Number of children',
-    group: 'Which group do you belong to?',
-    groupPlaceholder: 'Choose your group',
-    years: 'How many years have you been in Canada?',
-  },
-  maritalStatuses: { married: 'Married', single: 'Single' },
-  groups: {
-    permanentResidents: 'Permanent resident',
-    resettledRefugees: 'Refugee or protected person',
-    asylumClaimants: 'Asylum claimant',
-    workPermit: 'Temporary worker',
-    studyPermit: 'International student',
-  },
-  groupHints: {
-    permanentResidents: 'You can live and work in Canada with no end date.',
-    resettledRefugees: 'Canada has accepted you as a refugee.',
-    asylumClaimants: 'You asked Canada for refugee protection and are waiting for an answer.',
-    workPermit: 'You have a work permit.',
-    studyPermit: 'You have a study permit.',
   },
   results: {
     editAnswers: 'Change my answers',
@@ -193,11 +158,11 @@ const en: Translations = {
 // French typography puts a non-breaking space before ? and :.
 const fr: Translations = {
   brand: 'Newcomer Compass',
-  pageTitles: { questionnaire: 'Parlez-moi de vous', results: 'Vos résultats' },
+  pageTitles: { questionnaire: 'De quoi avez-vous besoin aujourd’hui ?', results: 'Vos résultats' },
   language: { button: 'Langue', ariaLabel: 'Changer de langue' },
   questionnaire: {
-    title: 'Parlez-moi de vous',
-    lead: 'Répondez à quelques questions courtes. Ensuite, nous vous montrerons les prestations du gouvernement que vous pourriez recevoir.',
+    title: 'De quoi avez-vous besoin aujourd’hui ?',
+    lead: 'Choisissez la situation qui ressemble le plus à la vôtre. Nous poserons seulement les questions utiles pour celle-ci.',
     situationsLabel: 'Situations',
     comingSoon: 'Bientôt offert. Seule la première option est disponible dans ce prototype.',
     change: 'Modifier',
@@ -218,29 +183,6 @@ const fr: Translations = {
     reviewHeading: 'Vérifiez vos réponses',
     reviewLead: 'Vous pouvez modifier vos réponses avant de voir vos prestations.',
     submit: 'Voir mes prestations',
-    formLabel: 'À propos de vous',
-    age: 'Âge',
-    maritalStatus: 'Marié(e) ou célibataire ?',
-    maritalPlaceholder: 'Choisir',
-    children: 'Nombre d’enfants',
-    group: 'À quel groupe appartenez-vous ?',
-    groupPlaceholder: 'Choisissez votre groupe',
-    years: 'Depuis combien d’années êtes-vous au Canada ?',
-  },
-  maritalStatuses: { married: 'Marié(e)', single: 'Célibataire' },
-  groups: {
-    permanentResidents: 'Résident(e) permanent(e)',
-    resettledRefugees: 'Réfugié(e) ou personne protégée',
-    asylumClaimants: 'Demandeur ou demandeuse d’asile',
-    workPermit: 'Travailleur ou travailleuse temporaire',
-    studyPermit: 'Étudiant(e) étranger(ère)',
-  },
-  groupHints: {
-    permanentResidents: 'Vous pouvez vivre et travailler au Canada sans date de fin.',
-    resettledRefugees: 'Le Canada vous a accepté(e) comme réfugié(e).',
-    asylumClaimants: 'Vous avez demandé la protection du Canada et vous attendez une réponse.',
-    workPermit: 'Vous avez un permis de travail.',
-    studyPermit: 'Vous avez un permis d’études.',
   },
   results: {
     editAnswers: 'Changer mes réponses',
@@ -296,11 +238,11 @@ const fr: Translations = {
 
 const ar: Translations = {
   brand: 'Newcomer Compass',
-  pageTitles: { questionnaire: 'أخبرنا عن نفسك', results: 'نتائجك' },
+  pageTitles: { questionnaire: 'ما الذي تحتاج إلى المساعدة فيه اليوم؟', results: 'نتائجك' },
   language: { button: 'اللغة', ariaLabel: 'تغيير اللغة' },
   questionnaire: {
-    title: 'أخبرنا عن نفسك',
-    lead: 'أجب عن بعض الأسئلة السريعة وسنعرض لك المزايا التي قد تكون مؤهلاً لها.',
+    title: 'ما الذي تحتاج إلى المساعدة فيه اليوم؟',
+    lead: 'اختر الحالة الأقرب إلى وضعك. سنسألك فقط الأسئلة المهمة لهذه الحالة.',
     situationsLabel: 'الحالات',
     comingSoon: 'قريبًا. الخيار الأول فقط متاح في هذا النموذج الأولي.',
     change: 'تغيير',
@@ -320,25 +262,8 @@ const ar: Translations = {
     notAnswered: 'بدون إجابة',
     reviewHeading: 'راجع إجاباتك',
     reviewLead: 'يمكنك تغيير أي إجابة قبل أن ترى المزايا.',
-    submit: 'إرسال',
-    formLabel: 'معلومات عنك',
-    age: 'العمر',
-    maritalStatus: 'الحالة الاجتماعية',
-    maritalPlaceholder: 'اختر',
-    children: 'عدد الأطفال',
-    group: 'إلى أي فئة تنتمي؟',
-    groupPlaceholder: 'اختر فئتك',
-    years: 'منذ كم سنة تقيم في كندا؟',
+    submit: 'اعرض المزايا الخاصة بي',
   },
-  maritalStatuses: { married: 'متزوج/ة', single: 'أعزب/عزباء' },
-  groups: {
-    permanentResidents: 'المقيمون الدائمون',
-    resettledRefugees: 'اللاجئون المُعاد توطينهم والأشخاص المحميون',
-    asylumClaimants: 'طالبو اللجوء',
-    workPermit: 'المقيمون المؤقتون بتصريح عمل',
-    studyPermit: 'المقيمون المؤقتون بتصريح دراسة',
-  },
-  groupHints: null,
   results: {
     editAnswers: 'تعديل إجاباتي',
     heading: 'النتائج',

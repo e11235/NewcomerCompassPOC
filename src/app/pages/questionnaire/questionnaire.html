@@ -1,142 +1,132 @@
 <app-gc-header />
 
-<main class="page">
-  <header class="intro">
-    <div class="title-row">
-      <button
-        type="button"
-        class="language-toggle"
-        matRipple
-        [attr.aria-label]="t().language.ariaLabel"
-        [matMenuTriggerFor]="languageMenu"
-      >
-        <mat-icon aria-hidden="true">translate</mat-icon>
-        <span>{{ t().language.button }}</span>
-      </button>
-      <mat-menu #languageMenu="matMenu" class="language-menu">
-        @for (language of i18n.languages; track language.code) {
-          <button
-            mat-menu-item
-            type="button"
-            role="menuitemradio"
-            [attr.aria-checked]="language.code === i18n.lang()"
-            (click)="i18n.lang.set(language.code)"
-          >
-            <mat-icon
-              class="language-check"
-              [class.selected]="language.code === i18n.lang()"
-              aria-hidden="true"
-              >check</mat-icon
+@let lang = i18n.lang();
+<div class="layout">
+  <div class="main-column">
+    <main class="page">
+      <div class="title-row" [class.compact]="!pickerOpen()">
+        <button
+          type="button"
+          class="language-toggle"
+          matRipple
+          [attr.aria-label]="t().language.ariaLabel"
+          [matMenuTriggerFor]="languageMenu"
+        >
+          <mat-icon aria-hidden="true">translate</mat-icon>
+          <span>{{ t().language.button }}</span>
+        </button>
+        <mat-menu #languageMenu="matMenu" class="language-menu">
+          @for (language of i18n.languages; track language.code) {
+            <button
+              mat-menu-item
+              type="button"
+              role="menuitemradio"
+              [attr.aria-checked]="language.code === lang"
+              (click)="i18n.lang.set(language.code)"
             >
-            <span [attr.lang]="language.code" [attr.dir]="language.dir">{{ language.label }}</span>
-          </button>
+              <mat-icon class="language-check" [class.selected]="language.code === lang" aria-hidden="true"
+                >check</mat-icon
+              >
+              <span [attr.lang]="language.code" [attr.dir]="language.dir">{{ language.label }}</span>
+            </button>
+          }
+        </mat-menu>
+
+        @if (pickerOpen()) {
+          <div class="intro">
+            <h1 #pageHeading tabindex="-1">{{ t().questionnaire.title }}</h1>
+            <p class="lead">{{ t().questionnaire.lead }}</p>
+          </div>
+        } @else {
+          <div class="situation-bar">
+            <h1 #pageHeading tabindex="-1" class="bar-question">{{ t().questionnaire.title }}</h1>
+            <p class="bar-selection">
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              <span>{{ situation()?.title?.[lang] }}</span>
+            </p>
+            <button
+              type="button"
+              class="link-button"
+              aria-controls="situation-grid"
+              aria-expanded="false"
+              [attr.aria-label]="t().questionnaire.changeLabel"
+              (click)="changeSituation()"
+            >
+              {{ t().questionnaire.change }}
+            </button>
+          </div>
         }
-      </mat-menu>
-      <h1>{{ t().questionnaire.title }}</h1>
-    </div>
-    <p class="lead">{{ t().questionnaire.lead }}</p>
-  </header>
-
-  <form class="nc-card questionnaire" (ngSubmit)="submit()" [attr.aria-label]="t().questionnaire.formLabel">
-    <div class="fields">
-      <div class="field">
-        <label for="age">{{ t().questionnaire.age }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <input
-            matInput
-            id="age"
-            name="age"
-            type="number"
-            min="0"
-            max="120"
-            inputmode="numeric"
-            [(ngModel)]="profile.age"
-          />
-        </mat-form-field>
       </div>
 
-      <div class="field">
-        <label id="marital-label">{{ t().questionnaire.maritalStatus }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-select
-            name="maritalStatus"
-            [placeholder]="t().questionnaire.maritalPlaceholder"
-            aria-labelledby="marital-label"
-            [(ngModel)]="profile.maritalStatus"
-          >
-            @for (status of maritalStatuses; track status) {
-              <mat-option [value]="status">{{ t().maritalStatuses[status] }}</mat-option>
+      @if (pickerOpen()) {
+        <app-situation-picker [current]="store.answers().situation" (chosen)="chooseSituation($event)" />
+      } @else {
+        @if (!finished()) {
+          <app-answer-summary class="running-summary" variant="chips" (edit)="showStep($event)" />
+        }
+
+        @for (step of currentStep(); track step.id) {
+          <section class="nc-card step-card" aria-labelledby="step-heading">
+            <div class="progress-row">
+              <p class="step-count">{{ t().questionnaire.stepProgress(stepIndex() + 1, totalSteps) }}</p>
+              <div class="progress" aria-hidden="true">
+                <div class="progress-fill" [style.width.%]="progress()"></div>
+              </div>
+            </div>
+
+            <h2 id="step-heading" #stepHeading tabindex="-1">{{ step.title[lang] }}</h2>
+
+            <app-question-step [step]="step" />
+
+            <div class="step-nav">
+              <button mat-stroked-button type="button" class="nav-button" (click)="back()">
+                <mat-icon class="flip-rtl">arrow_back</mat-icon>
+                {{ t().questionnaire.back }}
+              </button>
+              <button
+                mat-flat-button
+                type="button"
+                class="nav-button primary"
+                [disabled]="!stepComplete()"
+                disabledInteractive
+                [attr.aria-describedby]="stepComplete() ? null : 'continue-hint'"
+                (click)="continue()"
+              >
+                {{ t().questionnaire.continue }}
+                <mat-icon iconPositionEnd class="flip-rtl">arrow_forward</mat-icon>
+              </button>
+            </div>
+            @if (!stepComplete()) {
+              <p id="continue-hint" class="continue-hint">{{ t().questionnaire.continueHint }}</p>
             }
-          </mat-select>
-        </mat-form-field>
-      </div>
+          </section>
+        }
 
-      <div class="field">
-        <label for="children">{{ t().questionnaire.children }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <input
-            matInput
-            id="children"
-            name="children"
-            type="number"
-            min="0"
-            max="20"
-            inputmode="numeric"
-            [(ngModel)]="profile.children"
-          />
-        </mat-form-field>
-      </div>
+        @if (finished()) {
+          <section class="nc-card step-card review-card" aria-labelledby="review-heading">
+            <h2 id="review-heading" #stepHeading tabindex="-1">{{ t().questionnaire.reviewHeading }}</h2>
+            <p class="review-lead">{{ t().questionnaire.reviewLead }}</p>
 
-      <div class="field field-wide">
-        <label id="group-label">{{ t().questionnaire.group }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-select
-            name="group"
-            [placeholder]="t().questionnaire.groupPlaceholder"
-            aria-labelledby="group-label"
-            [(ngModel)]="profile.group"
-            panelClass="group-panel"
-          >
-            <!-- The closed box shows just the group name; the list also shows a short explanation. -->
-            <mat-select-trigger>{{ profile.group() ? t().groups[profile.group()!] : '' }}</mat-select-trigger>
-            @for (group of groups; track group) {
-              <mat-option [value]="group">
-                <span class="group-name">{{ t().groups[group] }}</span>
-                @if (t().groupHints; as hints) {
-                  <span class="group-hint">{{ hints[group] }}</span>
-                }
-              </mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
+            <app-answer-summary variant="list" (edit)="showStep($event)" />
 
-      <div class="field">
-        <label for="years">{{ t().questionnaire.years }}</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <input
-            matInput
-            id="years"
-            name="years"
-            type="number"
-            min="0"
-            max="100"
-            inputmode="numeric"
-            [(ngModel)]="profile.yearsInCanada"
-          />
-        </mat-form-field>
-      </div>
-    </div>
+            <div class="step-nav">
+              <button mat-stroked-button type="button" class="nav-button" (click)="back()">
+                <mat-icon class="flip-rtl">arrow_back</mat-icon>
+                {{ t().questionnaire.back }}
+              </button>
+              <button mat-flat-button type="button" class="nav-button primary submit" (click)="submit()">
+                {{ t().questionnaire.submit }}
+                <mat-icon iconPositionEnd class="flip-rtl">arrow_forward</mat-icon>
+              </button>
+            </div>
+          </section>
+        }
+      }
 
-    <div class="actions">
-      <button mat-flat-button class="submit" type="submit">
-        {{ t().questionnaire.submit }}
-        <mat-icon iconPositionEnd class="flip-rtl">arrow_forward</mat-icon>
-      </button>
-    </div>
-  </form>
+      <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
+    </main>
+    <app-gc-footer />
+  </div>
 
-  <app-chat class="chat" />
-</main>
-
-<app-gc-footer />
+  <app-chat-side-panel />
+</div>
