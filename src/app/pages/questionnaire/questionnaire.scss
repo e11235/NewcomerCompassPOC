@@ -1,5 +1,5 @@
-// Wide screens: header on top, then the answers pane, the questionnaire column
-// and the chat panel side by side, each filling the rest of the window.
+// Wide screens: header on top, then the questionnaire column and the chat
+// panel side by side, filling the rest of the window.
 :host {
   display: flex;
   flex-direction: column;
@@ -10,16 +10,6 @@
   flex: 1;
   min-height: 0;
   display: flex;
-}
-
-// Kept narrow so the questions stay the focus.
-.answers-pane {
-  box-sizing: border-box;
-  flex: 0 0 clamp(12.5rem, 16vw, 15rem);
-  overflow-y: auto;
-  padding: 1.25rem 1rem 2rem;
-  border-inline-end: 1px solid var(--nc-border);
-  background: var(--gc-alt-bg);
 }
 
 // Shrinks and grows as the chat panel opens and closes; the content inside
@@ -37,12 +27,22 @@
   box-sizing: border-box;
   flex: 1 0 auto;
   width: 100%;
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
   padding: 1.25rem 1.5rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.875rem;
+}
+
+// The situation tiles grow to fill the space between the title and the footer,
+// and the page is allowed wider on big screens to give them room.
+.page.picking {
+  max-width: 1600px;
+}
+
+.picker {
+  flex: 1 0 auto;
 }
 
 // Title area: the language button sits at the start edge, vertically centred
@@ -207,80 +207,74 @@ h2:focus {
   }
 }
 
-// Wide enough for two questions side by side.
+// The parts and their buttons share one width with the situation bar.
 .title-row.compact,
-.step-card {
+.parts {
   box-sizing: border-box;
   width: 100%;
-  max-width: 920px;
+  max-width: 1180px;
   margin-inline: auto;
 }
 
-.step-card {
-  padding: 1.25rem 2rem 1.5rem;
+.parts {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-
-  h2 {
-    font-size: clamp(1.375rem, 2.5vw, 1.75rem);
-  }
+  gap: 0.75rem;
 }
 
-// Only the questions change between steps, so it feels like one page.
-.step-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  animation: fade-in 200ms ease;
-}
-
-.review-card {
-  animation: fade-in 200ms ease;
-}
-
-.progress-row {
+.part {
+  padding: 0.75rem 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  animation: fade-in 200ms ease;
+  transition: opacity 200ms ease;
+
+  // Answered already: kept in place but faded, and its dropdowns are disabled.
+  // The whole card fades evenly; Material's own (much lighter) disabled colours
+  // are swapped for the normal ones so the answers stay readable.
+  &.locked {
+    opacity: 0.6;
+    background: var(--gc-alt-bg);
+    --mat-select-disabled-trigger-text-color: var(--nc-text);
+    --mat-select-disabled-arrow-color: var(--nc-text-muted);
+    --mat-form-field-outlined-disabled-outline-color: var(--nc-border);
+  }
 }
 
-.step-count {
-  margin: 0;
-  font-size: 1rem;
+.part-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.part-count {
+  font-family: 'Noto Sans', 'Noto Sans Arabic', system-ui, sans-serif;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--nc-text-muted);
 }
 
-.progress {
-  height: 8px;
-  border-radius: 999px;
-  background: #e1e4e8;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--gc-blue);
-  transition: width 200ms ease;
-}
-
 .step-nav {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 1rem;
   margin-top: 0.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--nc-border);
 }
 
 .nav-button {
+  flex-shrink: 0;
   min-width: 140px;
   height: 48px;
   font-size: 1.0625rem;
   font-weight: 600;
   border-radius: var(--nc-radius-md);
+
+  &.primary {
+    margin-inline-start: auto;
+  }
 
   &.primary:not(.mat-mdc-button-disabled-interactive[aria-disabled='true']):hover {
     --mat-button-filled-container-color: var(--gc-blue-hover);
@@ -288,21 +282,17 @@ h2:focus {
 }
 
 .submit {
-  min-width: 240px;
-  height: 56px;
+  min-width: 220px;
+  height: 52px;
   font-size: 1.1875rem;
 }
 
 .continue-hint {
-  margin: -0.5rem 0 0;
+  margin: 0;
+  margin-inline-start: auto;
   font-size: 0.9375rem;
   color: var(--nc-text-muted);
   text-align: end;
-}
-
-.review-lead {
-  margin: -0.75rem 0 0;
-  color: var(--nc-text-muted);
 }
 
 @keyframes fade-in {
@@ -313,12 +303,8 @@ h2:focus {
 
 @media (prefers-reduced-motion: reduce) {
   .situation-bar,
-  .step-body,
-  .review-card {
+  .part {
     animation: none;
-  }
-
-  .progress-fill {
     transition: none;
   }
 }
@@ -358,12 +344,13 @@ h2:focus {
     }
   }
 
-  .step-card {
-    padding: 1.25rem 1rem 1.5rem;
+  .part {
+    padding: 0.875rem 1rem 1.125rem;
   }
 
   .step-nav {
     flex-direction: column-reverse;
+    align-items: stretch;
 
     .nav-button {
       width: 100%;
@@ -371,6 +358,7 @@ h2:focus {
   }
 
   .continue-hint {
+    margin-inline-start: 0;
     text-align: center;
   }
 }
@@ -380,24 +368,6 @@ h2:focus {
   :host {
     height: auto;
     min-height: 100dvh;
-  }
-
-  // The answers pane moves above the questions, collapsed.
-  .layout {
-    flex-direction: column;
-  }
-
-  .answers-pane {
-    flex: none;
-    overflow: visible;
-    padding: 0.5rem 1rem;
-    border-inline-end: none;
-    border-bottom: 1px solid var(--nc-border);
-
-    // Nothing to show until there are answers.
-    &:not(:has(.pane-toggle)) {
-      display: none;
-    }
   }
 
   .main-column {

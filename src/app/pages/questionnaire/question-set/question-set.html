@@ -1,0 +1,27 @@
+@let lang = i18n.lang();
+@for (question of questions(); track question.id) {
+  @let labelId = question.id + '-label';
+  <div class="field">
+    <div class="label" [id]="labelId">
+      {{ question.label[lang] }}
+      @if (question.optional) {
+        <span class="optional">{{ t().questionnaire.optional }}</span>
+      }
+    </div>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-select
+        [aria-labelledby]="labelId"
+        [placeholder]="t().questionnaire.choose"
+        [multiple]="!!question.multiple"
+        [required]="!question.optional"
+        [disabled]="locked()"
+        [value]="value(question)"
+        (selectionChange)="setValue(question, $event.value)"
+      >
+        @for (option of question.options; track option.value) {
+          <mat-option [value]="option.value">{{ option.label[lang] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+}

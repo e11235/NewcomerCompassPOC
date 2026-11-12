@@ -1,5 +1,6 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   container-type: inline-size;
   transition: opacity 200ms ease;
   animation: fade-in 200ms ease;
@@ -11,13 +12,17 @@
 }
 
 // 4 columns on wide screens, 2 on tablets, 1 on phones (measured on the
-// questionnaire column, so it adapts when the chat panel is open).
+// questionnaire column, so it adapts when the chat panel is open). The rows
+// share out whatever height the page has spare, so the tiles grow on tall
+// screens instead of leaving empty space above the footer.
 .grid {
+  flex: 1 0 auto;
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(8rem, 1fr);
   gap: 1rem;
 
   li {
@@ -41,12 +46,11 @@
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  min-height: 9rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
-  padding: 1.25rem 1.25rem 1.125rem;
+  gap: 0.625rem;
+  padding: clamp(1.25rem, 2.2vh, 1.75rem) clamp(1.25rem, 1.6vw, 1.75rem);
   border: 2px solid var(--nc-border);
   border-radius: var(--nc-radius-lg);
   background: var(--nc-surface);
@@ -76,17 +80,24 @@
   }
 }
 
+.card-icon {
+  font-size: clamp(2rem, 5.5vh, 3.5rem);
+  width: auto;
+  height: auto;
+  color: var(--gc-blue);
+}
+
 .card-title {
   padding-inline-end: 1.75rem; // room for the check mark
   font-family: Lato, 'Noto Sans Arabic', system-ui, sans-serif;
-  font-size: 1.1875rem;
+  font-size: clamp(1.1875rem, 0.4rem + 1.8vh, 1.625rem);
   font-weight: 700;
   line-height: 1.3;
   color: var(--gc-link);
 }
 
 .card-description {
-  font-size: 1rem;
+  font-size: clamp(1rem, 0.5rem + 0.95vh, 1.1875rem);
   line-height: 1.45;
   color: var(--nc-text-muted);
 }
@@ -119,5 +130,18 @@
   :host {
     transition: none;
     animation: none;
+  }
+}
+
+// Short windows (small laptops): tighten the tiles so the page still fits
+// without scrolling.
+@media (max-height: 760px) {
+  .card {
+    gap: 0.25rem;
+    padding: 0.875rem 1.125rem;
+  }
+
+  .card-icon {
+    font-size: 1.75rem;
   }
 }

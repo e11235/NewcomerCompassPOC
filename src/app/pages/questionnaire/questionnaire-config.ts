@@ -1,6 +1,6 @@
 /**
  * Content for the guided questionnaire on the first page: the situations people
- * can pick from, and the steps and questions that follow.
+ * can pick from, and the three parts of dropdown questions that follow.
  *
  * Edit wording here. Every piece of text has an English (en), French (fr) and
  * Arabic (ar) version. Option `value`s are stored in the answers, so keep them
@@ -31,6 +31,8 @@ export interface Situation {
   id: SituationId;
   title: Text;
   description: Text;
+  /** Material Symbols icon name shown on the tile. */
+  icon: string;
   /** Only available situations lead to the questions; the rest show a "coming soon" note. */
   available: boolean;
 }
@@ -38,6 +40,7 @@ export interface Situation {
 export const SITUATIONS: readonly Situation[] = [
   {
     id: 'lostIncome',
+    icon: 'work_off',
     available: true,
     title: {
       en: 'I lost my job or my income changed',
@@ -52,6 +55,7 @@ export const SITUATIONS: readonly Situation[] = [
   },
   {
     id: 'basicExpenses',
+    icon: 'shopping_cart',
     available: false,
     title: {
       en: 'I need help with basic expenses',
@@ -66,6 +70,7 @@ export const SITUATIONS: readonly Situation[] = [
   },
   {
     id: 'children',
+    icon: 'family_restroom',
     available: false,
     title: {
       en: 'I have or care for children',
@@ -80,6 +85,7 @@ export const SITUATIONS: readonly Situation[] = [
   },
   {
     id: 'recentlyArrived',
+    icon: 'flight_land',
     available: false,
     title: {
       en: 'I recently arrived in Canada',
@@ -94,6 +100,7 @@ export const SITUATIONS: readonly Situation[] = [
   },
   {
     id: 'findingWork',
+    icon: 'work',
     available: false,
     title: {
       en: 'I need help finding work',
@@ -108,6 +115,7 @@ export const SITUATIONS: readonly Situation[] = [
   },
   {
     id: 'health',
+    icon: 'health_and_safety',
     available: false,
     title: {
       en: 'I have a health or disability-related need',
@@ -122,6 +130,7 @@ export const SITUATIONS: readonly Situation[] = [
   },
   {
     id: 'housing',
+    icon: 'home',
     available: false,
     title: {
       en: 'I need housing help',
@@ -136,6 +145,7 @@ export const SITUATIONS: readonly Situation[] = [
   },
   {
     id: 'notSure',
+    icon: 'help',
     available: false,
     title: {
       en: 'I am not sure where to start',
@@ -156,7 +166,6 @@ export const SITUATIONS: readonly Situation[] = [
 
 export type QuestionId =
   | 'province'
-  | 'city'
   | 'immigrationStatus'
   | 'workAuthorization'
   | 'sin'
@@ -169,7 +178,7 @@ export type QuestionId =
   | 'supports'
   | 'helpLanguage';
 
-/** A single choice is a string; checkboxes store a list of values. */
+/** A single choice is a string; questions with `multiple` store a list of values. */
 export type AnswerValue = string | readonly string[];
 export type AnswerValues = Partial<Record<QuestionId, AnswerValue>>;
 
@@ -178,23 +187,16 @@ export interface ChoiceOption {
   label: Text;
 }
 
-interface QuestionBase {
+export interface Question {
   id: QuestionId;
   label: Text;
-  /** Short name used in the answer summary. */
-  shortLabel: Text;
-  helper?: Text;
+  options: readonly ChoiceOption[];
+  /** Lets the person pick more than one option. */
+  multiple?: boolean;
   optional?: boolean;
   /** Show the question only when this returns true. Hidden questions are never required. */
   showIf?: (answers: AnswerValues) => boolean;
 }
-
-export type Question = QuestionBase &
-  (
-    | { kind: 'radio' | 'select'; options: readonly ChoiceOption[] }
-    | { kind: 'checkbox'; options: readonly ChoiceOption[] }
-    | { kind: 'text'; maxLength: number }
-  );
 
 export interface Step {
   id: string;
@@ -259,52 +261,25 @@ const HELP_LANGUAGES: readonly ChoiceOption[] = [
 
 export const STEPS: readonly Step[] = [
   {
-    id: 'location',
-    title: { en: 'Where you live', fr: 'Où vous habitez', ar: 'مكان إقامتك' },
+    id: 'about',
+    title: { en: 'About you', fr: 'À propos de vous', ar: 'معلومات عنك' },
     questions: [
       {
         id: 'province',
-        kind: 'select',
         label: {
           en: 'Which province or territory do you live in?',
           fr: 'Dans quelle province ou quel territoire habitez-vous ?',
           ar: 'في أي مقاطعة أو إقليم تعيش؟',
         },
-        shortLabel: { en: 'Province or territory', fr: 'Province ou territoire', ar: 'المقاطعة أو الإقليم' },
         options: PROVINCES,
       },
       {
-        id: 'city',
-        kind: 'text',
-        optional: true,
-        maxLength: 60,
-        label: {
-          en: 'City, or the first three characters of your postal code',
-          fr: 'Ville, ou les trois premiers caractères de votre code postal',
-          ar: 'المدينة، أو أول ثلاثة أحرف من رمزك البريدي',
-        },
-        shortLabel: { en: 'City or area', fr: 'Ville ou secteur', ar: 'المدينة أو المنطقة' },
-        helper: {
-          en: 'For example: Ottawa or K1P. Do not enter your full postal code.',
-          fr: 'Par exemple : Ottawa ou K1P. N’entrez pas votre code postal complet.',
-          ar: 'مثلًا: Ottawa أو K1P. لا تُدخل رمزك البريدي كاملًا.',
-        },
-      },
-    ],
-  },
-  {
-    id: 'status',
-    title: { en: 'Your status in Canada', fr: 'Votre statut au Canada', ar: 'وضعك في كندا' },
-    questions: [
-      {
         id: 'immigrationStatus',
-        kind: 'radio',
         label: {
           en: 'What is your immigration status?',
           fr: 'Quel est votre statut d’immigration ?',
           ar: 'ما هو وضعك كمهاجر؟',
         },
-        shortLabel: { en: 'Immigration status', fr: 'Statut d’immigration', ar: 'وضع الهجرة' },
         options: [
           {
             value: 'permanentResident',
@@ -346,56 +321,29 @@ export const STEPS: readonly Step[] = [
       },
       {
         id: 'workAuthorization',
-        kind: 'radio',
         label: {
           en: 'Are you currently authorized to work in Canada?',
           fr: 'Êtes-vous autorisé(e) à travailler au Canada en ce moment ?',
           ar: 'هل يُسمح لك حاليًا بالعمل في كندا؟',
         },
-        shortLabel: { en: 'Can work in Canada', fr: 'Autorisé(e) à travailler', ar: 'مسموح لك بالعمل' },
         options: YES_NO_NOT_SURE,
       },
-    ],
-  },
-  {
-    id: 'sin',
-    title: {
-      en: 'Your Social Insurance Number',
-      fr: 'Votre numéro d’assurance sociale',
-      ar: 'رقم التأمين الاجتماعي الخاص بك',
-    },
-    questions: [
       {
         id: 'sin',
-        kind: 'radio',
         label: {
           en: 'Do you have a Social Insurance Number (SIN)?',
           fr: 'Avez-vous un numéro d’assurance sociale (NAS) ?',
           ar: 'هل لديك رقم تأمين اجتماعي (SIN)؟',
         },
-        shortLabel: { en: 'Has a SIN', fr: 'A un NAS', ar: 'لديه رقم تأمين اجتماعي' },
-        helper: {
-          en: 'Do not enter your SIN. We only need to know if you have one.',
-          fr: 'N’entrez pas votre NAS. Nous voulons seulement savoir si vous en avez un.',
-          ar: 'لا تُدخل رقمك. نحتاج فقط إلى معرفة ما إذا كان لديك رقم.',
-        },
         options: YES_NO_NOT_SURE,
       },
-    ],
-  },
-  {
-    id: 'taxes',
-    title: { en: 'Your taxes', fr: 'Vos impôts', ar: 'الضرائب' },
-    questions: [
       {
         id: 'taxReturn',
-        kind: 'radio',
         label: {
           en: 'Did you file a tax return for last year?',
           fr: 'Avez-vous produit une déclaration de revenus pour l’an dernier ?',
           ar: 'هل قدّمت إقرارًا ضريبيًا عن العام الماضي؟',
         },
-        shortLabel: { en: 'Filed taxes last year', fr: 'Impôts de l’an dernier', ar: 'إقرار العام الماضي' },
         options: [
           YES_NO_NOT_SURE[0],
           YES_NO_NOT_SURE[1],
@@ -414,17 +362,15 @@ export const STEPS: readonly Step[] = [
   },
   {
     id: 'work',
-    title: { en: 'Work and income', fr: 'Travail et revenu', ar: 'العمل والدخل' },
+    title: { en: 'Work and household', fr: 'Travail et ménage', ar: 'العمل والأسرة' },
     questions: [
       {
         id: 'workSituation',
-        kind: 'radio',
         label: {
           en: 'What best describes your work right now?',
           fr: 'Qu’est-ce qui décrit le mieux votre travail en ce moment ?',
           ar: 'ما الذي يصف وضع عملك حاليًا بشكل أفضل؟',
         },
-        shortLabel: { en: 'Work right now', fr: 'Travail actuel', ar: 'العمل حاليًا' },
         options: [
           {
             value: 'lostJob',
@@ -459,17 +405,10 @@ export const STEPS: readonly Step[] = [
       },
       {
         id: 'householdIncome',
-        kind: 'radio',
         label: {
           en: 'About how much income did your household have last year?',
           fr: 'Environ combien votre ménage a-t-il gagné l’an dernier ?',
           ar: 'كم كان دخل أسرتك تقريبًا في العام الماضي؟',
-        },
-        shortLabel: { en: 'Household income', fr: 'Revenu du ménage', ar: 'دخل الأسرة' },
-        helper: {
-          en: 'A rough range is enough. Include everyone in your household.',
-          fr: 'Une estimation suffit. Incluez toutes les personnes de votre ménage.',
-          ar: 'يكفي نطاق تقريبي. احسب دخل جميع أفراد أسرتك.',
         },
         options: [
           { value: 'under20k', label: { en: 'Under $20,000', fr: 'Moins de 20 000 $', ar: 'أقل من 20,000 دولار' } },
@@ -495,21 +434,13 @@ export const STEPS: readonly Step[] = [
           },
         ],
       },
-    ],
-  },
-  {
-    id: 'household',
-    title: { en: 'Your household', fr: 'Votre ménage', ar: 'أسرتك' },
-    questions: [
       {
         id: 'maritalStatus',
-        kind: 'radio',
         label: {
           en: 'What is your marital status?',
           fr: 'Quel est votre état matrimonial ?',
           ar: 'ما هي حالتك الاجتماعية؟',
         },
-        shortLabel: { en: 'Marital status', fr: 'État matrimonial', ar: 'الحالة الاجتماعية' },
         options: [
           { value: 'single', label: { en: 'Single', fr: 'Célibataire', ar: 'أعزب/عزباء' } },
           {
@@ -529,13 +460,11 @@ export const STEPS: readonly Step[] = [
       },
       {
         id: 'children',
-        kind: 'radio',
         label: {
           en: 'How many children under 18 live with you?',
           fr: 'Combien d’enfants de moins de 18 ans vivent avec vous ?',
           ar: 'كم عدد الأطفال دون 18 عامًا الذين يعيشون معك؟',
         },
-        shortLabel: { en: 'Children under 18', fr: 'Enfants de moins de 18 ans', ar: 'الأطفال دون 18 عامًا' },
         options: [
           { value: '0', label: { en: 'None', fr: 'Aucun', ar: 'لا يوجد' } },
           { value: '1', label: { en: '1', fr: '1', ar: '1' } },
@@ -552,13 +481,11 @@ export const STEPS: readonly Step[] = [
     questions: [
       {
         id: 'helpChannel',
-        kind: 'radio',
         label: {
           en: 'How would you prefer to get help?',
           fr: 'Comment préférez-vous recevoir de l’aide ?',
           ar: 'كيف تفضّل الحصول على المساعدة؟',
         },
-        shortLabel: { en: 'Get help', fr: 'Recevoir de l’aide', ar: 'طريقة المساعدة' },
         options: [
           { value: 'online', label: { en: 'Online', fr: 'En ligne', ar: 'عبر الإنترنت' } },
           { value: 'phone', label: { en: 'By phone', fr: 'Par téléphone', ar: 'عبر الهاتف' } },
@@ -579,14 +506,13 @@ export const STEPS: readonly Step[] = [
       },
       {
         id: 'supports',
-        kind: 'checkbox',
+        multiple: true,
         optional: true,
         label: {
           en: 'Do you need any accessibility or language support? Select all that apply.',
           fr: 'Avez-vous besoin d’aide pour l’accessibilité ou la langue ? Cochez tout ce qui s’applique.',
           ar: 'هل تحتاج إلى دعم في إمكانية الوصول أو اللغة؟ اختر كل ما ينطبق.',
         },
-        shortLabel: { en: 'Support needed', fr: 'Soutien requis', ar: 'الدعم المطلوب' },
         options: [
           {
             value: 'language',
@@ -606,14 +532,12 @@ export const STEPS: readonly Step[] = [
       },
       {
         id: 'helpLanguage',
-        kind: 'select',
         showIf: (answers) => Array.isArray(answers.supports) && answers.supports.includes('language'),
         label: {
           en: 'Which language would you like help in?',
           fr: 'Dans quelle langue voulez-vous recevoir de l’aide ?',
           ar: 'بأي لغة تريد الحصول على المساعدة؟',
         },
-        shortLabel: { en: 'Help language', fr: 'Langue de l’aide', ar: 'لغة المساعدة' },
         options: HELP_LANGUAGES,
       },
     ],
@@ -640,15 +564,4 @@ export function isStepComplete(step: Step, answers: AnswerValues): boolean {
   return step.questions.every(
     (q) => q.optional || !isVisible(q, answers) || isAnswered(answers[q.id]),
   );
-}
-
-/** The answer as text in the given language (option labels joined for checkboxes). */
-export function formatAnswer(question: Question, value: AnswerValue, lang: LanguageCode): string {
-  if (question.kind === 'text') {
-    return typeof value === 'string' ? value : '';
-  }
-  const values = typeof value === 'string' ? [value] : value;
-  return values
-    .map((v) => question.options.find((o) => o.value === v)?.label[lang] ?? v)
-    .join(lang === 'ar' ? '، ' : ', ');
 }

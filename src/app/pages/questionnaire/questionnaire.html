@@ -2,12 +2,8 @@
 
 @let lang = i18n.lang();
 <div class="layout">
-  <aside class="answers-pane" aria-labelledby="pane-heading">
-    <app-answer-summary variant="pane" (edit)="editStep($event)" />
-  </aside>
-
   <div class="main-column">
-    <main class="page">
+    <main class="page" [class.picking]="pickerOpen()">
       <div class="title-row" [class.compact]="!pickerOpen()">
         <button
           type="button"
@@ -63,68 +59,48 @@
       </div>
 
       @if (pickerOpen()) {
-        <app-situation-picker [current]="store.answers().situation" (chosen)="chooseSituation($event)" />
+        <app-situation-picker
+          class="picker"
+          [current]="store.answers().situation"
+          (chosen)="chooseSituation($event)"
+        />
       } @else {
-        @if (!finished()) {
-          <!-- The card stays put between steps; only its questions change. -->
-          <section class="nc-card step-card" aria-labelledby="step-heading">
-            <div class="progress-row">
-              <p class="step-count">{{ t().questionnaire.questionsLeft(questionsLeft()) }}</p>
-              <div class="progress" aria-hidden="true">
-                <div class="progress-fill" [style.width.%]="progress()"></div>
-              </div>
-            </div>
+        <div class="parts">
+          <!-- Earlier parts stay where they are, faded and locked; the newest is below them. -->
+          @for (step of shownSteps(); track step.id; let i = $index) {
+            @let locked = i < stepIndex();
+            <section class="nc-card part" [class.locked]="locked" [attr.aria-labelledby]="'part-' + step.id">
+              <h2 class="part-heading" [id]="'part-' + step.id" #stepHeading tabindex="-1">
+                <span class="part-count">{{ t().questionnaire.partOf(i + 1, totalSteps) }}</span>
+                <span>{{ step.title[lang] }}</span>
+              </h2>
+              <app-question-set [step]="step" [locked]="locked" />
+            </section>
+          }
 
-            @for (step of currentStep(); track step.id) {
-              <div class="step-body">
-                <h2 id="step-heading" #stepHeading tabindex="-1">{{ step.title[lang] }}</h2>
-                <app-question-step [step]="step" />
-              </div>
-            }
-
-            <div class="step-nav">
-              <button mat-stroked-button type="button" class="nav-button" (click)="back()">
-                <mat-icon class="flip-rtl">arrow_back</mat-icon>
-                {{ t().questionnaire.back }}
-              </button>
-              <button
-                mat-flat-button
-                type="button"
-                class="nav-button primary"
-                [disabled]="!stepComplete()"
-                disabledInteractive
-                [attr.aria-describedby]="stepComplete() ? null : 'continue-hint'"
-                (click)="continue()"
-              >
-                {{ t().questionnaire.continue }}
-                <mat-icon iconPositionEnd class="flip-rtl">arrow_forward</mat-icon>
-              </button>
-            </div>
+          <div class="step-nav">
+            <button mat-stroked-button type="button" class="nav-button" (click)="back()">
+              <mat-icon class="flip-rtl">arrow_back</mat-icon>
+              {{ t().questionnaire.back }}
+            </button>
             @if (!stepComplete()) {
               <p id="continue-hint" class="continue-hint">{{ t().questionnaire.continueHint }}</p>
             }
-          </section>
-        }
-
-        @if (finished()) {
-          <section class="nc-card step-card review-card" aria-labelledby="review-heading">
-            <h2 id="review-heading" #stepHeading tabindex="-1">{{ t().questionnaire.reviewHeading }}</h2>
-            <p class="review-lead">{{ t().questionnaire.reviewLead }}</p>
-
-            <app-answer-summary variant="list" (edit)="showStep($event)" />
-
-            <div class="step-nav">
-              <button mat-stroked-button type="button" class="nav-button" (click)="back()">
-                <mat-icon class="flip-rtl">arrow_back</mat-icon>
-                {{ t().questionnaire.back }}
-              </button>
-              <button mat-flat-button type="button" class="nav-button primary submit" (click)="submit()">
-                {{ t().questionnaire.submit }}
-                <mat-icon iconPositionEnd class="flip-rtl">arrow_forward</mat-icon>
-              </button>
-            </div>
-          </section>
-        }
+            <button
+              mat-flat-button
+              type="button"
+              class="nav-button primary"
+              [class.submit]="isLastStep()"
+              [disabled]="!stepComplete()"
+              disabledInteractive
+              [attr.aria-describedby]="stepComplete() ? null : 'continue-hint'"
+              (click)="next()"
+            >
+              {{ isLastStep() ? t().questionnaire.submit : t().questionnaire.next }}
+              <mat-icon iconPositionEnd class="flip-rtl">arrow_forward</mat-icon>
+            </button>
+          </div>
+        </div>
       }
 
       <p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>

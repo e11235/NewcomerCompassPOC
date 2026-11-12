@@ -6,6 +6,7 @@ import {
   inject,
   Injector,
   signal,
+  viewChildren,
   viewChild,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,22 +18,14 @@ import { ChatSidePanel } from '../../chat/chat-side-panel/chat-side-panel';
 import { GcFooter, GcHeader } from '../../gc-layout/gc-layout';
 import { I18n } from '../../i18n/i18n';
 import { AnswersStore } from '../../state/answers-store';
-import { AnswerSummary } from './answer-summary/answer-summary';
-import { QuestionStep } from './question-step/question-step';
-import {
-  isAnswered,
-  isStepComplete,
-  isVisible,
-  SITUATIONS,
-  SituationId,
-  STEPS,
-} from './questionnaire-config';
+import { QuestionSet } from './question-set/question-set';
+import { isStepComplete, SITUATIONS, SituationId, STEPS } from './questionnaire-config';
 import { SituationPicker } from './situation-picker/situation-picker';
 
 /**
- * First page: pick a situation, then answer one step of questions at a time,
- * then review. Everything happens on this one route, with the answers so far in
- * a pane beside the questions; answers live in AnswersStore.
+ * First page: pick a situation, then answer three parts of dropdown questions.
+ * Each part appears below the one before it; earlier parts stay on screen,
+ * faded and locked. Answers live in AnswersStore.
  */
 @Component({
   selector: 'app-questionnaire',
@@ -41,11 +34,10 @@ import { SituationPicker } from './situation-picker/situation-picker';
     MatIconModule,
     MatMenuModule,
     MatRippleModule,
-    AnswerSummary,
     ChatSidePanel,
     GcFooter,
     GcHeader,
-    QuestionStep,
+    QuestionSet,
     SituationPicker,
   ],
   templateUrl: './questionnaire.html',
@@ -67,41 +59,18 @@ export class Questionnaire {
     SITUATIONS.find((s) => s.id === this.store.answers().situation),
   );
   protected readonly stepIndex = this.store.step;
-  protected readonly finished = this.store.finished;
-  /** The current step in a one-item list, so the step's content re-renders (and fades in) on change. */
-  protected readonly currentStep = computed(() => (this.finished() ? [] : [STEPS[this.stepIndex()]]));
-  protected readonly stepComplete = computed(() => {
-    const [step] = this.currentStep();
-    return step ? isStepComplete(step, this.store.answers().values) : false;
-  });
-
-  /**
-   * Visible questions still without an answer. Optional questions stop counting
-   * once the person has moved past their step.
-   */
-  protected readonly questionsLeft = computed(() => {
-    const values = this.store.answers().values;
-    const current = this.stepIndex();
-    return STEPS.reduce(
-      (count, step, index) =>
-        count +
-        step.questions.filter(
-          (q) => isVisible(q, values) && !isAnswered(values[q.id]) && (!q.optional || index >= current),
-        ).length,
-      0,
-    );
-  });
-  protected readonly progress = computed(() => {
-    const values = this.store.answers().values;
-    const total = STEPS.flatMap((step) => step.questions.filter((q) => isVisible(q, values))).length;
-    return total ? ((total - this.questionsLeft()) / total) * 100 : 0;
-  });
+  /** The parts on screen: every part up to and including the current one. */
+  protected readonly shownSteps = computed(() => STEPS.slice(0, this.stepIndex() + 1));
+  protected readonly isLastStep = computed(() => this.stepIndex() === this.totalSteps - 1);
+  protected readonly stepComplete = computed(() =>
+    isStepComplete(STEPS[this.stepIndex()], this.store.answers().values),
+  );
 
   /** Read out by screen readers when the screen changes. */
   protected readonly announcement = signal('');
 
   private readonly pageHeading = viewChild<ElementRef<HTMLElement>>('pageHeading');
-  private readonly stepHeading = viewChild<ElementRef<HTMLElement>>('stepHeading');
+  private readonly stepHeadings = viewChildren<ElementRef<HTMLElement>>('stepHeading');
 
   protected chooseSituation(id: SituationId): void {
     this.store.setSituation(id);
@@ -115,6 +84,7 @@ export class Questionnaire {
     this.focusAfterRender(() => this.pageHeading());
   }
 
+  /** Back to the previous part (its answers are kept), or to the situations from the first. */
   protected back(): void {
     if (this.stepIndex() === 0) {
       this.changeSituation();
@@ -123,34 +93,25 @@ export class Questionnaire {
     }
   }
 
-  protected continue(): void {
-    if (this.stepComplete()) {
+  protected next(): void {
+    if (!this.stepComplete()) {
+      return;
+    }
+    if (this.isLastStep()) {
+      this.router.navigate(['/results']);
+    } else {
       this.showStep(this.stepIndex() + 1);
     }
   }
 
-  /** From the answers pane: go back to a step, closing the situation picker if it's open. */
-  protected editStep(index: number): void {
-    if (this.store.answers().situation !== null) {
-      this.pickerOpen.set(false);
-    }
-    this.showStep(index);
-  }
-
-  /** Go to a step (or, past the last one, the review) and move focus to its heading. */
-  protected showStep(index: number): void {
+  /** Make a part the current one and move focus to its heading. */
+  private showStep(index: number): void {
     this.stepIndex.set(index);
-    const t = this.t().questionnaire;
+    const step = STEPS[index];
     this.announcement.set(
-      index >= this.totalSteps
-        ? t.reviewHeading
-        : `${STEPS[index].title[this.i18n.lang()]}. ${t.questionsLeft(this.questionsLeft())}`,
+      `${this.t().questionnaire.partOf(index + 1, this.totalSteps)}: ${step.title[this.i18n.lang()]}`,
     );
-    this.focusAfterRender(() => this.stepHeading());
-  }
-
-  protected submit(): void {
-    this.router.navigate(['/results']);
+    this.focusAfterRender(() => this.stepHeadings()[index]);
   }
 
   private focusAfterRender(target: () => ElementRef<HTMLElement> | undefined): void {

@@ -9,24 +9,6 @@ export const LANGUAGES: readonly { code: LanguageCode; label: string; dir: 'ltr'
   { code: 'ar', label: 'العربية', dir: 'rtl' },
 ];
 
-// Counts are spelled out ("Four questions left") up to twenty, then written as digits.
-const EN_NUMBERS = [
-  'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
-];
-const FR_NUMBERS = [
-  'zéro', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
-  'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt',
-];
-
-function countWord(n: number, words: readonly string[]): string {
-  return words[n] ?? String(n);
-}
-
-function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 export type PageKey = 'questionnaire' | 'results';
 
 /** Every user-facing string in the app. English defines the shape; the other languages must match it. */
@@ -41,21 +23,13 @@ export interface Translations {
     comingSoon: string;
     change: string;
     changeLabel: string;
-    /** How many questions are still to answer, e.g. "Four questions left". */
-    questionsLeft: (count: number) => string;
+    /** Which part of the questions this is, e.g. "Part 1 of 3". */
+    partOf: (part: number, total: number) => string;
     back: string;
-    continue: string;
+    next: string;
     continueHint: string;
     optional: string;
     choose: string;
-    postalTrimmed: string;
-    summaryHeading: string;
-    summaryEmpty: string;
-    changeAnswer: string;
-    changeStep: (stepTitle: string) => string;
-    notAnswered: string;
-    reviewHeading: string;
-    reviewLead: string;
     submit: string;
   };
   results: {
@@ -106,24 +80,13 @@ const en: Translations = {
     comingSoon: 'Coming soon. Only the first option is available in this prototype.',
     change: 'Change',
     changeLabel: 'Change your situation',
-    questionsLeft: (n) =>
-      n === 0
-        ? 'All questions answered'
-        : `${capitalize(countWord(n, EN_NUMBERS))} question${n === 1 ? '' : 's'} left`,
+    partOf: (part, total) => `Part ${part} of ${total}`,
     back: 'Back',
-    continue: 'Continue',
-    continueHint: 'Answer the questions on this step to continue.',
+    next: 'Next',
+    continueHint: 'Answer each question above to continue.',
     optional: '(optional)',
     choose: 'Choose…',
-    postalTrimmed: 'We kept only the first three characters of your postal code.',
-    summaryHeading: 'Your answers',
-    summaryEmpty: 'Your answers will appear here as you go.',
-    changeAnswer: 'change',
-    changeStep: (title) => `Change answers for: ${title}`,
-    notAnswered: 'Not answered',
-    reviewHeading: 'Check your answers',
-    reviewLead: 'You can change any answer before you see your benefits.',
-    submit: 'Show my benefits',
+    submit: 'See benefits',
   },
   results: {
     editAnswers: 'Change my answers',
@@ -187,24 +150,13 @@ const fr: Translations = {
     comingSoon: 'Bientôt offert. Seule la première option est disponible dans ce prototype.',
     change: 'Modifier',
     changeLabel: 'Modifier votre situation',
-    questionsLeft: (n) =>
-      n === 0
-        ? 'Toutes les questions ont une réponse'
-        : `Encore ${countWord(n, FR_NUMBERS)} question${n === 1 ? '' : 's'}`,
+    partOf: (part, total) => `Partie ${part} sur ${total}`,
     back: 'Retour',
-    continue: 'Continuer',
-    continueHint: 'Répondez aux questions de cette étape pour continuer.',
+    next: 'Suivant',
+    continueHint: 'Répondez à chaque question ci-dessus pour continuer.',
     optional: '(facultatif)',
     choose: 'Choisir…',
-    postalTrimmed: 'Nous avons gardé seulement les trois premiers caractères de votre code postal.',
-    summaryHeading: 'Vos réponses',
-    summaryEmpty: 'Vos réponses s’afficheront ici au fur et à mesure.',
-    changeAnswer: 'modifier',
-    changeStep: (title) => `Modifier les réponses : ${title}`,
-    notAnswered: 'Sans réponse',
-    reviewHeading: 'Vérifiez vos réponses',
-    reviewLead: 'Vous pouvez modifier vos réponses avant de voir vos prestations.',
-    submit: 'Voir mes prestations',
+    submit: 'Voir les prestations',
   },
   results: {
     editAnswers: 'Changer mes réponses',
@@ -269,30 +221,13 @@ const ar: Translations = {
     comingSoon: 'قريبًا. الخيار الأول فقط متاح في هذا النموذج الأولي.',
     change: 'تغيير',
     changeLabel: 'تغيير حالتك',
-    questionsLeft: (n) =>
-      n === 0
-        ? 'تمت الإجابة عن كل الأسئلة'
-        : n === 1
-          ? 'بقي سؤال واحد'
-          : n === 2
-            ? 'بقي سؤالان'
-            : n <= 10
-              ? `بقيت ${n} أسئلة`
-              : `بقي ${n} سؤالًا`,
+    partOf: (part, total) => `الجزء ${part} من ${total}`,
     back: 'رجوع',
-    continue: 'متابعة',
-    continueHint: 'أجب عن أسئلة هذه الخطوة للمتابعة.',
+    next: 'التالي',
+    continueHint: 'أجب عن كل سؤال أعلاه للمتابعة.',
     optional: '(اختياري)',
     choose: 'اختر…',
-    postalTrimmed: 'احتفظنا فقط بأول ثلاثة أحرف من رمزك البريدي.',
-    summaryHeading: 'إجاباتك',
-    summaryEmpty: 'ستظهر إجاباتك هنا أثناء تقدّمك.',
-    changeAnswer: 'تغيير',
-    changeStep: (title) => `تغيير الإجابات: ${title}`,
-    notAnswered: 'بدون إجابة',
-    reviewHeading: 'راجع إجاباتك',
-    reviewLead: 'يمكنك تغيير أي إجابة قبل أن ترى المزايا.',
-    submit: 'اعرض المزايا الخاصة بي',
+    submit: 'اعرض المزايا',
   },
   results: {
     editAnswers: 'تعديل إجاباتي',

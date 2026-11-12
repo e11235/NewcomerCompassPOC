@@ -1,11 +1,10 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import {
   AnswerValue,
   AnswerValues,
   isAnswered,
   QuestionId,
   SituationId,
-  STEPS,
 } from '../pages/questionnaire/questionnaire-config';
 
 /** Everything the person has told us, in one object. */
@@ -25,10 +24,8 @@ export class AnswersStore {
   /** The answers object, read by the questionnaire and available to the results page. */
   readonly answers = this.state.asReadonly();
 
-  /** Index into STEPS of the step on screen; STEPS.length means the final review. */
+  /** Index into STEPS of the part being answered; earlier parts stay on screen, locked. */
   readonly step = signal(0);
-
-  readonly finished = computed(() => this.step() >= STEPS.length);
 
   setSituation(situation: SituationId): void {
     this.state.update((s) => ({ ...s, situation }));

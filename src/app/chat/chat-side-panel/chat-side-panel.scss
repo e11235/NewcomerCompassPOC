@@ -100,23 +100,32 @@
 .open-button {
   position: fixed;
   z-index: 20;
-  bottom: 1.25rem;
-  inset-inline-end: 1.25rem;
+  // High enough to clear the footer band (and its Canada wordmark) when the
+  // page fits the window: it sits in the empty space beside the "Date
+  // modified" line, below the page's content.
+  bottom: 3.375rem;
+  inset-inline-end: 1.5rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  min-height: 48px;
-  padding: 0.625rem 1.25rem;
+  gap: 0.625rem;
+  min-height: 56px;
+  padding: 0.75rem 1.625rem 0.75rem 1.375rem;
   border: none;
   border-radius: 999px;
   background: var(--gc-blue);
   color: #fff;
   box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
   font: inherit;
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   cursor: pointer;
   animation: fade-in var(--nc-chat-duration) ease;
+
+  mat-icon {
+    font-size: 1.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
+  }
 
   &:hover {
     background: var(--gc-blue-hover);

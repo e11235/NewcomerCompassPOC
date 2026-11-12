@@ -9,6 +9,7 @@
         [attr.aria-pressed]="isSelected"
         (click)="choose(situation)"
       >
+        <mat-icon class="card-icon" aria-hidden="true">{{ situation.icon }}</mat-icon>
         <span class="card-title">{{ situation.title[i18n.lang()] }}</span>
         <span class="card-description">{{ situation.description[i18n.lang()] }}</span>
         @if (isSelected) {
