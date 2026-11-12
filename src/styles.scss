@@ -21,10 +21,10 @@ html {
   // Government of Canada (Canada.ca) colours on top of the Material theme.
   @include mat.theme-overrides(
     (
-      primary: #26374a,
+      primary: #0066cc,
       on-primary: #ffffff,
-      primary-container: #e8ecf1,
-      on-primary-container: #26374a,
+      primary-container: #dbeafe,
+      on-primary-container: #003d7a,
       surface-tint: transparent,
     )
   );
@@ -38,14 +38,14 @@ html {
   );
 
   // Government of Canada palette (Canada.ca / GC Design System).
-  --gc-blue: #26374a; // header/footer and primary buttons
-  --gc-blue-hover: #1c578a;
-  --gc-link: #284162;
-  --gc-link-hover: #0535d2;
+  --gc-blue: #0066cc; // header/footer and primary buttons
+  --gc-blue-hover: #0052a3;
+  --gc-link: #0066cc;
+  --gc-link-hover: #004a99;
   --gc-focus: #0535d2;
-  --gc-red: #af3c43; // accent bar under page titles
-  --gc-success: #278400;
-  --gc-alt-bg: #f8f8f8; // light grey bands (footer, side panel)
+  --gc-red: #ff6b35; // accent bar under page titles
+  --gc-success: #1e9e3a;
+  --gc-alt-bg: #eef6ff; // light grey bands (footer, side panel)
 
   // Shared design tokens used by the component styles.
   --nc-bg: #ffffff;
