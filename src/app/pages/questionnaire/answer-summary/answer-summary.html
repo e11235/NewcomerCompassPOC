@@ -1,0 +1,62 @@
+@if (variant() === 'chips') {
+  @if (items().length) {
+    <section class="chips-section" aria-labelledby="summary-heading">
+      <h2 id="summary-heading" class="summary-heading">{{ t().questionnaire.summaryHeading }}</h2>
+      <ul
+        #list
+        id="summary-chips"
+        class="chips"
+        [style.max-height.px]="expanded() ? null : collapsedHeight()"
+      >
+        @for (item of items(); track item.question.id; let i = $index) {
+          <li [class.hidden]="isHidden(i)">
+            <button type="button" class="chip" (click)="edit.emit(item.stepIndex)">
+              <span class="chip-label">{{ item.label }}:</span>
+              <span class="chip-value">{{ item.value }}</span>
+              <span class="visually-hidden">({{ t().questionnaire.changeAnswer }})</span>
+              <mat-icon class="chip-icon" aria-hidden="true">edit</mat-icon>
+            </button>
+          </li>
+        }
+      </ul>
+      @if (hiddenFrom() !== null) {
+        <button
+          type="button"
+          class="link-button"
+          aria-controls="summary-chips"
+          [attr.aria-expanded]="expanded()"
+          (click)="expanded.set(!expanded())"
+        >
+          {{ expanded() ? t().questionnaire.showFewer : t().questionnaire.showAll(hiddenCount()) }}
+          <mat-icon aria-hidden="true">{{ expanded() ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+      }
+    </section>
+  }
+} @else {
+  <div class="review">
+    @for (group of groups(); track group.step.id) {
+      <section class="review-group" [attr.aria-labelledby]="'review-' + group.step.id">
+        <div class="review-group-header">
+          <h3 [id]="'review-' + group.step.id">{{ group.step.title[i18n.lang()] }}</h3>
+          <button
+            type="button"
+            class="link-button"
+            [attr.aria-label]="t().questionnaire.changeStep(group.step.title[i18n.lang()])"
+            (click)="edit.emit(group.stepIndex)"
+          >
+            {{ t().questionnaire.change }}
+          </button>
+        </div>
+        <dl>
+          @for (item of group.items; track item.question.id) {
+            <div class="review-row">
+              <dt>{{ item.label }}</dt>
+              <dd [class.muted]="item.value === null">{{ item.value ?? t().questionnaire.notAnswered }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+  </div>
+}
