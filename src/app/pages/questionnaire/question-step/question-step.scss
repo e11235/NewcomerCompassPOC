@@ -1,7 +1,14 @@
+// Questions sit side by side when there's room, to save scrolling.
 :host {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  align-items: start;
+  gap: 1.5rem 2rem;
+}
+
+// An odd last question gets the full width rather than half a row.
+.question:nth-child(odd):last-child {
+  grid-column: 1 / -1;
 }
 
 .question {
@@ -44,6 +51,18 @@ legend + * {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+
+  // Long lists flow into two columns (top to bottom, then across) when there's room.
+  &.many {
+    display: block;
+    columns: 2 16rem;
+    column-gap: 0.75rem;
+
+    .choice {
+      break-inside: avoid;
+      margin-bottom: 0.5rem;
+    }
+  }
 }
 
 // Large, full-width answer rows.
@@ -51,9 +70,9 @@ legend + * {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  min-height: 52px;
+  min-height: 48px;
   box-sizing: border-box;
-  padding: 0.625rem 1rem;
+  padding: 0.5rem 1rem;
   border: 1px solid #6f6f6f;
   border-radius: var(--nc-radius-md);
   background: var(--nc-surface);
@@ -101,8 +120,8 @@ legend + * {
   box-sizing: border-box;
   width: 100%;
   max-width: 28rem;
-  min-height: 52px;
-  padding: 0.625rem 0.875rem;
+  min-height: 48px;
+  padding: 0.5rem 0.875rem;
   border: 1px solid #6f6f6f;
   border-radius: var(--nc-radius-md);
   background: var(--nc-surface);

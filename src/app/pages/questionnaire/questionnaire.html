@@ -2,6 +2,10 @@
 
 @let lang = i18n.lang();
 <div class="layout">
+  <aside class="answers-pane" aria-labelledby="pane-heading">
+    <app-answer-summary variant="pane" (edit)="editStep($event)" />
+  </aside>
+
   <div class="main-column">
     <main class="page">
       <div class="title-row" [class.compact]="!pickerOpen()">
@@ -62,21 +66,21 @@
         <app-situation-picker [current]="store.answers().situation" (chosen)="chooseSituation($event)" />
       } @else {
         @if (!finished()) {
-          <app-answer-summary class="running-summary" variant="chips" (edit)="showStep($event)" />
-        }
-
-        @for (step of currentStep(); track step.id) {
+          <!-- The card stays put between steps; only its questions change. -->
           <section class="nc-card step-card" aria-labelledby="step-heading">
             <div class="progress-row">
-              <p class="step-count">{{ t().questionnaire.stepProgress(stepIndex() + 1, totalSteps) }}</p>
+              <p class="step-count">{{ t().questionnaire.questionsLeft(questionsLeft()) }}</p>
               <div class="progress" aria-hidden="true">
                 <div class="progress-fill" [style.width.%]="progress()"></div>
               </div>
             </div>
 
-            <h2 id="step-heading" #stepHeading tabindex="-1">{{ step.title[lang] }}</h2>
-
-            <app-question-step [step]="step" />
+            @for (step of currentStep(); track step.id) {
+              <div class="step-body">
+                <h2 id="step-heading" #stepHeading tabindex="-1">{{ step.title[lang] }}</h2>
+                <app-question-step [step]="step" />
+              </div>
+            }
 
             <div class="step-nav">
               <button mat-stroked-button type="button" class="nav-button" (click)="back()">

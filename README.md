@@ -20,7 +20,7 @@ npm run lint       # ESLint, including Angular template accessibility rules
 
 | Route      | What it shows                                                                 |
 | ---------- | ----------------------------------------------------------------------------- |
-| `/`        | "What do you need help with today?": pick a situation, answer 7 short steps, review, then **Show my benefits**. Chat in a side panel the user can hide (overlay below 900px) |
+| `/`        | "What do you need help with today?": pick a situation, answer 7 short steps (answers so far in a narrow pane on the left), review, then **Show my benefits**. Chat in a side panel, closed until the user opens it (overlay below 900px) |
 | `/results` | Benefits list and how to access them (≈70% width) with a full-height chat panel (≈30%) |
 
 ## Structure

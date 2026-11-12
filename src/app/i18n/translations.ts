@@ -9,6 +9,24 @@ export const LANGUAGES: readonly { code: LanguageCode; label: string; dir: 'ltr'
   { code: 'ar', label: 'العربية', dir: 'rtl' },
 ];
 
+// Counts are spelled out ("Four questions left") up to twenty, then written as digits.
+const EN_NUMBERS = [
+  'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+];
+const FR_NUMBERS = [
+  'zéro', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
+  'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt',
+];
+
+function countWord(n: number, words: readonly string[]): string {
+  return words[n] ?? String(n);
+}
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export type PageKey = 'questionnaire' | 'results';
 
 /** Every user-facing string in the app. English defines the shape; the other languages must match it. */
@@ -23,7 +41,8 @@ export interface Translations {
     comingSoon: string;
     change: string;
     changeLabel: string;
-    stepProgress: (step: number, total: number) => string;
+    /** How many questions are still to answer, e.g. "Four questions left". */
+    questionsLeft: (count: number) => string;
     back: string;
     continue: string;
     continueHint: string;
@@ -31,8 +50,7 @@ export interface Translations {
     choose: string;
     postalTrimmed: string;
     summaryHeading: string;
-    showAll: (hiddenCount: number) => string;
-    showFewer: string;
+    summaryEmpty: string;
     changeAnswer: string;
     changeStep: (stepTitle: string) => string;
     notAnswered: string;
@@ -88,7 +106,10 @@ const en: Translations = {
     comingSoon: 'Coming soon. Only the first option is available in this prototype.',
     change: 'Change',
     changeLabel: 'Change your situation',
-    stepProgress: (step, total) => `Step ${step} of ${total}`,
+    questionsLeft: (n) =>
+      n === 0
+        ? 'All questions answered'
+        : `${capitalize(countWord(n, EN_NUMBERS))} question${n === 1 ? '' : 's'} left`,
     back: 'Back',
     continue: 'Continue',
     continueHint: 'Answer the questions on this step to continue.',
@@ -96,8 +117,7 @@ const en: Translations = {
     choose: 'Choose…',
     postalTrimmed: 'We kept only the first three characters of your postal code.',
     summaryHeading: 'Your answers',
-    showAll: (n) => `Show all answers (${n} more)`,
-    showFewer: 'Show fewer answers',
+    summaryEmpty: 'Your answers will appear here as you go.',
     changeAnswer: 'change',
     changeStep: (title) => `Change answers for: ${title}`,
     notAnswered: 'Not answered',
@@ -167,7 +187,10 @@ const fr: Translations = {
     comingSoon: 'Bientôt offert. Seule la première option est disponible dans ce prototype.',
     change: 'Modifier',
     changeLabel: 'Modifier votre situation',
-    stepProgress: (step, total) => `Étape ${step} de ${total}`,
+    questionsLeft: (n) =>
+      n === 0
+        ? 'Toutes les questions ont une réponse'
+        : `Encore ${countWord(n, FR_NUMBERS)} question${n === 1 ? '' : 's'}`,
     back: 'Retour',
     continue: 'Continuer',
     continueHint: 'Répondez aux questions de cette étape pour continuer.',
@@ -175,8 +198,7 @@ const fr: Translations = {
     choose: 'Choisir…',
     postalTrimmed: 'Nous avons gardé seulement les trois premiers caractères de votre code postal.',
     summaryHeading: 'Vos réponses',
-    showAll: (n) => `Afficher toutes les réponses (${n} de plus)`,
-    showFewer: 'Afficher moins de réponses',
+    summaryEmpty: 'Vos réponses s’afficheront ici au fur et à mesure.',
     changeAnswer: 'modifier',
     changeStep: (title) => `Modifier les réponses : ${title}`,
     notAnswered: 'Sans réponse',
@@ -247,7 +269,16 @@ const ar: Translations = {
     comingSoon: 'قريبًا. الخيار الأول فقط متاح في هذا النموذج الأولي.',
     change: 'تغيير',
     changeLabel: 'تغيير حالتك',
-    stepProgress: (step, total) => `الخطوة ${step} من ${total}`,
+    questionsLeft: (n) =>
+      n === 0
+        ? 'تمت الإجابة عن كل الأسئلة'
+        : n === 1
+          ? 'بقي سؤال واحد'
+          : n === 2
+            ? 'بقي سؤالان'
+            : n <= 10
+              ? `بقيت ${n} أسئلة`
+              : `بقي ${n} سؤالًا`,
     back: 'رجوع',
     continue: 'متابعة',
     continueHint: 'أجب عن أسئلة هذه الخطوة للمتابعة.',
@@ -255,8 +286,7 @@ const ar: Translations = {
     choose: 'اختر…',
     postalTrimmed: 'احتفظنا فقط بأول ثلاثة أحرف من رمزك البريدي.',
     summaryHeading: 'إجاباتك',
-    showAll: (n) => `عرض كل الإجابات (${n} أخرى)`,
-    showFewer: 'عرض إجابات أقل',
+    summaryEmpty: 'ستظهر إجاباتك هنا أثناء تقدّمك.',
     changeAnswer: 'تغيير',
     changeStep: (title) => `تغيير الإجابات: ${title}`,
     notAnswered: 'بدون إجابة',

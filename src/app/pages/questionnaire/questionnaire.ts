@@ -19,12 +19,20 @@ import { I18n } from '../../i18n/i18n';
 import { AnswersStore } from '../../state/answers-store';
 import { AnswerSummary } from './answer-summary/answer-summary';
 import { QuestionStep } from './question-step/question-step';
-import { isStepComplete, SITUATIONS, SituationId, STEPS } from './questionnaire-config';
+import {
+  isAnswered,
+  isStepComplete,
+  isVisible,
+  SITUATIONS,
+  SituationId,
+  STEPS,
+} from './questionnaire-config';
 import { SituationPicker } from './situation-picker/situation-picker';
 
 /**
  * First page: pick a situation, then answer one step of questions at a time,
- * then review. Everything happens on this one route; answers live in AnswersStore.
+ * then review. Everything happens on this one route, with the answers so far in
+ * a pane beside the questions; answers live in AnswersStore.
  */
 @Component({
   selector: 'app-questionnaire',
@@ -66,7 +74,28 @@ export class Questionnaire {
     const [step] = this.currentStep();
     return step ? isStepComplete(step, this.store.answers().values) : false;
   });
-  protected readonly progress = computed(() => ((this.stepIndex() + 1) / this.totalSteps) * 100);
+
+  /**
+   * Visible questions still without an answer. Optional questions stop counting
+   * once the person has moved past their step.
+   */
+  protected readonly questionsLeft = computed(() => {
+    const values = this.store.answers().values;
+    const current = this.stepIndex();
+    return STEPS.reduce(
+      (count, step, index) =>
+        count +
+        step.questions.filter(
+          (q) => isVisible(q, values) && !isAnswered(values[q.id]) && (!q.optional || index >= current),
+        ).length,
+      0,
+    );
+  });
+  protected readonly progress = computed(() => {
+    const values = this.store.answers().values;
+    const total = STEPS.flatMap((step) => step.questions.filter((q) => isVisible(q, values))).length;
+    return total ? ((total - this.questionsLeft()) / total) * 100 : 0;
+  });
 
   /** Read out by screen readers when the screen changes. */
   protected readonly announcement = signal('');
@@ -100,6 +129,14 @@ export class Questionnaire {
     }
   }
 
+  /** From the answers pane: go back to a step, closing the situation picker if it's open. */
+  protected editStep(index: number): void {
+    if (this.store.answers().situation !== null) {
+      this.pickerOpen.set(false);
+    }
+    this.showStep(index);
+  }
+
   /** Go to a step (or, past the last one, the review) and move focus to its heading. */
   protected showStep(index: number): void {
     this.stepIndex.set(index);
@@ -107,7 +144,7 @@ export class Questionnaire {
     this.announcement.set(
       index >= this.totalSteps
         ? t.reviewHeading
-        : `${t.stepProgress(index + 1, this.totalSteps)}: ${STEPS[index].title[this.i18n.lang()]}`,
+        : `${STEPS[index].title[this.i18n.lang()]}. ${t.questionsLeft(this.questionsLeft())}`,
     );
     this.focusAfterRender(() => this.stepHeading());
   }

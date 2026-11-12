@@ -12,7 +12,7 @@
         @if (question.helper) {
           <p class="helper" [id]="question.id + '-helper'">{{ question.helper[lang] }}</p>
         }
-        <div class="choices">
+        <div class="choices" [class.many]="question.options.length > 5">
           @for (option of question.options; track option.value) {
             <label class="choice">
               <input
@@ -40,7 +40,7 @@
         @if (question.helper) {
           <p class="helper" [id]="question.id + '-helper'">{{ question.helper[lang] }}</p>
         }
-        <div class="choices">
+        <div class="choices" [class.many]="question.options.length > 5">
           @for (option of question.options; track option.value) {
             <label class="choice checkbox">
               <input

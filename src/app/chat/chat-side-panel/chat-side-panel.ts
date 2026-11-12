@@ -17,9 +17,9 @@ import { Chat } from '../chat';
 const OVERLAY_QUERY = '(max-width: 899.98px)';
 
 /**
- * The chat in a side panel the user can hide and show. On wide screens it sits
- * beside the page (open by default) and the page reflows around it; on narrow
- * screens it starts hidden and opens over the page.
+ * The chat in a side panel the user can show and hide. It starts closed. On wide
+ * screens it opens beside the page and the page reflows around it; on narrow
+ * screens it opens over the page.
  *
  * The chat itself is the shared `app-chat` component, unchanged.
  */
@@ -40,16 +40,16 @@ export class ChatSidePanel {
 
   private readonly media = window.matchMedia(OVERLAY_QUERY);
   protected readonly overlay = signal(this.media.matches);
-  readonly open = signal(!this.media.matches);
+  readonly open = signal(false);
 
   private readonly hideButton = viewChild.required<ElementRef<HTMLButtonElement>>('hideButton');
   private readonly openButton = viewChild.required<ElementRef<HTMLButtonElement>>('openButton');
 
   constructor() {
-    // Crossing the breakpoint resets to that size's default.
+    // Crossing the breakpoint closes the panel, so it never suddenly covers the page.
     const onChange = (event: MediaQueryListEvent) => {
       this.overlay.set(event.matches);
-      this.open.set(!event.matches);
+      this.open.set(false);
     };
     this.media.addEventListener('change', onChange);
     inject(DestroyRef).onDestroy(() => this.media.removeEventListener('change', onChange));

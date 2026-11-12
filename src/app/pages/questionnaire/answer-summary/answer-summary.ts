@@ -1,17 +1,4 @@
-import {
-  afterNextRender,
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  ElementRef,
-  inject,
-  Injector,
-  input,
-  output,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { I18n } from '../../../i18n/i18n';
 import { AnswersStore } from '../../../state/answers-store';
@@ -25,13 +12,11 @@ interface SummaryItem {
   value: string | null;
 }
 
-/** Rows of chips the compact summary shows before "Show all answers". */
-const MAX_ROWS = 2;
-
 /**
- * The person's answers so far. `chips` is the compact running summary above the
- * questions; `list` is the full review after the last step. Either way, choosing
- * an answer asks the parent to go back to its step.
+ * The person's answers so far. `pane` is the narrow running summary beside the
+ * questions (a collapsible block above them on small screens); `list` is the full
+ * review after the last step. Either way, choosing an answer asks the parent to
+ * go back to its step.
  */
 @Component({
   selector: 'app-answer-summary',
@@ -40,59 +25,40 @@ const MAX_ROWS = 2;
   styleUrl: './answer-summary.scss',
 })
 export class AnswerSummary {
-  readonly variant = input<'chips' | 'list'>('chips');
+  readonly variant = input<'pane' | 'list'>('pane');
   readonly edit = output<number>();
 
   protected readonly i18n = inject(I18n);
   protected readonly t = this.i18n.t;
-  private readonly store = inject(AnswersStore);
-  private readonly injector = inject(Injector);
-
-  /** Answered questions, in order (chips). */
-  protected readonly items = computed(() => this.buildItems().filter((item) => item.value !== null));
+  protected readonly store = inject(AnswersStore);
 
   /** Every visible question grouped by step, including skipped optional ones (review list). */
-  protected readonly groups = computed(() =>
-    STEPS.map((step, stepIndex) => ({
+  protected readonly groups = computed(() => {
+    const items = this.buildItems();
+    return STEPS.map((step, stepIndex) => ({
       step,
       stepIndex,
-      items: this.buildItems().filter((item) => item.stepIndex === stepIndex),
-    })),
-  );
-
-  protected readonly expanded = signal(false);
-  /** Index of the first chip past the second row, or null if they all fit. */
-  protected readonly hiddenFrom = signal<number | null>(null);
-  protected readonly collapsedHeight = signal<number | null>(null);
-  protected readonly hiddenCount = computed(() => {
-    const from = this.hiddenFrom();
-    return from === null ? 0 : this.items().length - from;
+      items: items.filter((item) => item.stepIndex === stepIndex),
+    }));
   });
 
-  private readonly list = viewChild<ElementRef<HTMLElement>>('list');
+  /** Only the answered questions, and only steps that have some (pane). */
+  protected readonly answeredGroups = computed(() =>
+    this.groups()
+      .map((group) => ({ ...group, items: group.items.filter((item) => item.value !== null) }))
+      .filter((group) => group.items.length),
+  );
 
-  constructor() {
-    // Re-measure after the chips change and whenever the list is resized.
-    effect(() => {
-      this.items();
-      this.i18n.lang();
-      afterNextRender(() => this.measure(), { injector: this.injector });
-    });
+  protected readonly answeredCount = computed(() =>
+    this.answeredGroups().reduce((n, group) => n + group.items.length, 0),
+  );
 
-    const observer = new ResizeObserver(() => this.measure());
-    effect(() => {
-      const el = this.list()?.nativeElement;
-      observer.disconnect();
-      if (el) {
-        observer.observe(el);
-      }
-    });
-    inject(DestroyRef).onDestroy(() => observer.disconnect());
-  }
+  /** Small screens only: whether the pane's list is shown. */
+  protected readonly expanded = signal(false);
 
-  protected isHidden(index: number): boolean {
-    const from = this.hiddenFrom();
-    return !this.expanded() && from !== null && index >= from;
+  protected choose(stepIndex: number): void {
+    this.expanded.set(false);
+    this.edit.emit(stepIndex);
   }
 
   private buildItems(): SummaryItem[] {
@@ -111,29 +77,5 @@ export class AnswerSummary {
           };
         }),
     );
-  }
-
-  /**
-   * Work out which chips wrap past the second row. Chips past it stay laid out
-   * (so their positions can be measured) but are hidden and removed from the tab order.
-   */
-  private measure(): void {
-    const el = this.list()?.nativeElement;
-    if (!el) {
-      return;
-    }
-    const chips = Array.from(el.children) as HTMLElement[];
-    const rowTops = [...new Set(chips.map((c) => c.offsetTop))].sort((a, b) => a - b);
-    if (rowTops.length <= MAX_ROWS) {
-      this.hiddenFrom.set(null);
-      this.collapsedHeight.set(null);
-      return;
-    }
-    const cutoff = rowTops[MAX_ROWS];
-    this.hiddenFrom.set(chips.findIndex((c) => c.offsetTop >= cutoff));
-    const visible = chips.filter((c) => c.offsetTop < cutoff);
-    const bottom = Math.max(...visible.map((c) => c.offsetTop + c.offsetHeight));
-    // The list is border-box, so add its bottom padding back.
-    this.collapsedHeight.set(bottom + parseFloat(getComputedStyle(el).paddingBottom));
   }
 }
