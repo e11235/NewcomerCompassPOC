@@ -1,0 +1,140 @@
+// Same width as the results page's chat column (about 30%, at least 340px).
+:host {
+  --nc-chat-width: max(340px, 30vw);
+  --nc-chat-slide: 100%;
+  --nc-chat-duration: 200ms;
+
+  display: block;
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 0;
+  overflow: hidden;
+  transition: width var(--nc-chat-duration) ease;
+}
+
+:host-context([dir='rtl']) {
+  --nc-chat-slide: -100%;
+}
+
+// Wide screens: the panel takes its column, and the page beside it reflows.
+:host(.open:not(.overlay)) {
+  width: var(--nc-chat-width);
+}
+
+.side-panel {
+  position: relative;
+  box-sizing: border-box;
+  width: var(--nc-chat-width);
+  height: 100%;
+  visibility: hidden;
+  // Stay visible while sliding shut, then hide so it can't be reached.
+  transition: visibility 0s linear var(--nc-chat-duration);
+}
+
+:host(.open) .side-panel {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+// Narrow screens: the panel slides in over the page.
+:host(.overlay) .side-panel {
+  position: fixed;
+  z-index: 30;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(420px, 100vw);
+  background: var(--nc-surface);
+  box-shadow: 0 0 24px rgb(0 0 0 / 25%);
+  transform: translateX(var(--nc-chat-slide));
+  transition:
+    transform var(--nc-chat-duration) ease,
+    visibility 0s linear var(--nc-chat-duration);
+}
+
+:host(.overlay.open) .side-panel {
+  transform: none;
+  transition: transform var(--nc-chat-duration) ease;
+}
+
+.backdrop {
+  position: fixed;
+  z-index: 29;
+  inset: 0;
+  background: rgb(0 0 0 / 40%);
+  animation: fade-in var(--nc-chat-duration) ease;
+}
+
+// Sits in the empty end of the chat's header row.
+.hide-button {
+  position: absolute;
+  z-index: 1;
+  top: 0.75rem;
+  inset-inline-end: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 36px;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-md);
+  background: var(--nc-surface);
+  color: var(--gc-link);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  &:hover {
+    background: #e8ecf1;
+    border-color: var(--gc-blue);
+    color: var(--gc-link-hover);
+  }
+}
+
+.open-button {
+  position: fixed;
+  z-index: 20;
+  bottom: 1.25rem;
+  inset-inline-end: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--gc-blue);
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 25%);
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  cursor: pointer;
+  animation: fade-in var(--nc-chat-duration) ease;
+
+  &:hover {
+    background: var(--gc-blue-hover);
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    --nc-chat-duration: 0ms;
+  }
+}

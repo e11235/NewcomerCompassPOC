@@ -1,0 +1,41 @@
+@if (overlay() && open()) {
+  <!-- Clicking outside closes the panel; keyboard users have Escape and the Hide button. -->
+  <div class="backdrop" aria-hidden="true" (click)="setOpen(false)"></div>
+}
+
+<aside
+  id="chat-side-panel"
+  class="side-panel"
+  [attr.aria-label]="t().chat.regionLabel"
+  [attr.role]="overlay() ? 'dialog' : null"
+  [attr.aria-modal]="overlay() ? 'true' : null"
+  [inert]="!open()"
+  [cdkTrapFocus]="overlay() && open()"
+>
+  <button
+    #hideButton
+    type="button"
+    class="hide-button"
+    aria-controls="chat-side-panel"
+    aria-expanded="true"
+    [attr.aria-label]="t().chat.hideLabel"
+    (click)="setOpen(false)"
+  >
+    <span>{{ t().chat.hide }}</span>
+    <mat-icon aria-hidden="true">close</mat-icon>
+  </button>
+  <app-chat variant="panel" />
+</aside>
+
+<button
+  #openButton
+  type="button"
+  class="open-button"
+  aria-controls="chat-side-panel"
+  aria-expanded="false"
+  [hidden]="open()"
+  (click)="setOpen(true)"
+>
+  <mat-icon aria-hidden="true">chat</mat-icon>
+  <span>{{ t().chat.open }}</span>
+</button>

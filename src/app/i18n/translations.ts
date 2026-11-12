@@ -64,6 +64,9 @@ export interface Translations {
     inputLabel: string;
     placeholder: string;
     submit: string;
+    open: string;
+    hide: string;
+    hideLabel: string;
   };
 }
 
@@ -143,6 +146,9 @@ const en: Translations = {
     inputLabel: 'Type your question',
     placeholder: 'Ask a question…',
     submit: 'Send question',
+    open: 'Open chat',
+    hide: 'Hide',
+    hideLabel: 'Hide chat',
   },
 };
 
@@ -225,6 +231,9 @@ const fr: Translations = {
     inputLabel: 'Écrivez votre question',
     placeholder: 'Posez une question…',
     submit: 'Envoyer la question',
+    open: 'Ouvrir le clavardage',
+    hide: 'Masquer',
+    hideLabel: 'Masquer le clavardage',
   },
 };
 
@@ -297,6 +306,9 @@ const ar: Translations = {
     inputLabel: 'اكتب سؤالك',
     placeholder: 'اطرح سؤالاً…',
     submit: 'إرسال السؤال',
+    open: 'فتح المحادثة',
+    hide: 'إخفاء',
+    hideLabel: 'إخفاء المحادثة',
   },
 };
 
