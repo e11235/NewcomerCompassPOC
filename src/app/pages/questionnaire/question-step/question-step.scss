@@ -1,0 +1,153 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.question {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+legend,
+.question-label {
+  padding: 0;
+  margin-bottom: 0.25rem;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--nc-text);
+}
+
+// A legend can't be a flex item, so space the content after it with a margin.
+legend + * {
+  margin-top: 0.375rem;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--nc-text-muted);
+}
+
+.helper {
+  margin: -0.25rem 0 0.25rem;
+  font-size: 1rem;
+  color: var(--nc-text-muted);
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+// Large, full-width answer rows.
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 0.625rem 1rem;
+  border: 1px solid #6f6f6f;
+  border-radius: var(--nc-radius-md);
+  background: var(--nc-surface);
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+
+  input {
+    flex-shrink: 0;
+    width: 1.375rem;
+    height: 1.375rem;
+    margin: 0;
+    accent-color: var(--gc-blue);
+    cursor: pointer;
+  }
+
+  &:hover {
+    border-color: var(--gc-blue);
+    background: #f5f7fa;
+  }
+
+  &:has(input:checked) {
+    border-color: var(--gc-blue);
+    background: var(--mat-sys-primary-container);
+    box-shadow: inset 0 0 0 1px var(--gc-blue);
+    font-weight: 600;
+  }
+
+  // Show the keyboard focus ring on the whole row.
+  &:has(input:focus-visible) {
+    outline: 3px solid var(--gc-focus);
+    outline-offset: 2px;
+  }
+
+  input:focus-visible {
+    outline: none;
+  }
+}
+
+.field {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 28rem;
+  min-height: 52px;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #6f6f6f;
+  border-radius: var(--nc-radius-md);
+  background: var(--nc-surface);
+  color: var(--nc-text);
+  font: inherit;
+  font-size: 1.0625rem;
+
+  &:hover {
+    border-color: var(--gc-blue);
+  }
+
+  &:focus-visible {
+    border-color: var(--gc-blue);
+  }
+}
+
+select.field {
+  appearance: none;
+  padding-inline-end: 2.75rem;
+  cursor: pointer;
+}
+
+// Draw our own arrow so the select matches the other fields.
+.select-wrap {
+  position: relative;
+  max-width: 28rem;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    inset-inline-end: 1rem;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-right: 2px solid var(--nc-text);
+    border-bottom: 2px solid var(--nc-text);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+}
+
+.notice {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-inline-start: 4px solid var(--gc-blue);
+  background: var(--mat-sys-primary-container);
+  font-size: 1rem;
+}
