@@ -1,10 +1,9 @@
 import { Routes } from '@angular/router';
-import { Questionnaire } from './pages/questionnaire/questionnaire';
-import { Results } from './pages/results/results';
+import { CompassPage } from './pages/compass/compass-page';
+import { Welcome } from './pages/welcome/welcome';
 
-// `title` values are page keys, translated by I18nTitleStrategy.
 export const routes: Routes = [
-  { path: '', component: Questionnaire, title: 'questionnaire' },
-  { path: 'results', component: Results, title: 'results' },
+  { path: '', component: Welcome, title: 'Newcomer Compass' },
+  { path: 'compass', component: CompassPage, title: 'Newcomer Compass' },
   { path: '**', redirectTo: '' },
 ];
