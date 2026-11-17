@@ -7,7 +7,6 @@ import type { LanguageCode } from '../content/types';
 export interface ExtraStrings {
   /** The language button on the welcome page, written in its own language. */
   continueIn: string;
-  welcomeChangeLater: string;
   prototypeLabel: string;
   prototypeNotice: string;
   prototypeNoticeLabel: string;
@@ -19,7 +18,6 @@ export interface ExtraStrings {
 export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
   en: {
     continueIn: 'Continue in English',
-    welcomeChangeLater: 'You can change the language at any time from the top of the page.',
     prototypeLabel: 'Prototype.',
     prototypeNotice:
       'This proof of concept demonstrates a possible service experience. It does not provide official eligibility decisions.',
@@ -30,7 +28,6 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
   },
   fr: {
     continueIn: 'Continuer en français',
-    welcomeChangeLater: 'Vous pouvez changer de langue en tout temps en haut de la page.',
     prototypeLabel: 'Prototype.',
     prototypeNotice:
       "Cette preuve de concept présente une expérience de service possible. Elle ne fournit pas de décisions officielles sur l'admissibilité.",
@@ -41,7 +38,6 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
   },
   ar: {
     continueIn: 'المتابعة بالعربية',
-    welcomeChangeLater: 'يمكنك تغيير اللغة في أي وقت من أعلى الصفحة.',
     prototypeLabel: 'نموذج أولي.',
     prototypeNotice: 'يعرض هذا النموذج الأولي تجربة خدمة ممكنة. ولا يقدّم قرارات رسمية بشأن الأهلية.',
     prototypeNoticeLabel: 'إشعار النموذج الأولي',

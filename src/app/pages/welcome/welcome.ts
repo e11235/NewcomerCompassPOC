@@ -1,9 +1,9 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import type { LanguageCode } from '../../content/types';
 import { EXTRA_STRINGS } from '../../i18n/extra-strings';
-import { I18n, LANGUAGES } from '../../i18n/i18n';
-import { Icon } from '../../shared/icon';
+import { I18n } from '../../i18n/i18n';
 import { LogoMark } from '../../shared/logo';
 
 interface Greeting {
@@ -15,6 +15,8 @@ interface Greeting {
   size: number;
   rotate: number;
   color: string;
+  /** Set on the greetings that pick a site language when clicked. */
+  choose?: LanguageCode;
 }
 
 const NAVY = '#062748';
@@ -26,11 +28,12 @@ const GREEN = '#1f6b3a';
 
 /**
  * "Hello" in languages spoken by many newcomers to Canada, laid out around the
- * logo as in ref/language 1.png. Decorative only: hidden from screen readers.
+ * logo as in ref/language 1.png. Every greeting highlights on hover; only the
+ * English, French and Arabic ones are buttons that pick the site language.
  */
 const GREETINGS: Greeting[] = [
-  { text: 'Hello', lang: 'en', x: 9, y: 8, size: 2.4, rotate: -6, color: NAVY },
-  { text: 'Bonjour', lang: 'fr', x: 28, y: 6, size: 2.1, rotate: 4, color: PLUM },
+  { text: 'Hello', lang: 'en', x: 9, y: 8, size: 2.4, rotate: -6, color: NAVY, choose: 'en' },
+  { text: 'Bonjour', lang: 'fr', x: 28, y: 6, size: 2.1, rotate: 4, color: PLUM, choose: 'fr' },
   { text: 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ', lang: 'pa', x: 50, y: 4, size: 1.7, rotate: -2, color: GREEN },
   { text: '你好', lang: 'zh', x: 70, y: 7, size: 2.3, rotate: -4, color: ORANGE },
   { text: 'Hola', lang: 'es', x: 89, y: 8, size: 2.5, rotate: -8, color: TEAL },
@@ -39,91 +42,93 @@ const GREETINGS: Greeting[] = [
   { text: 'नमस्ते', lang: 'hi', x: 9, y: 53, size: 1.9, rotate: 3, color: GREEN },
   { text: 'Xin chào', lang: 'vi', x: 10, y: 67, size: 1.6, rotate: -6, color: ORANGE },
   { text: '안녕하세요', lang: 'ko', x: 11, y: 81, size: 1.6, rotate: -3, color: BLUE },
-  { text: 'مرحبا', lang: 'ar', x: 90, y: 24, size: 2.1, rotate: 4, color: PLUM },
+  { text: 'مرحبا', lang: 'ar', x: 90, y: 24, size: 2.1, rotate: 4, color: PLUM, choose: 'ar' },
   { text: 'Kumusta', lang: 'tl', x: 89, y: 38, size: 1.6, rotate: -4, color: BLUE },
   { text: 'வணக்கம்', lang: 'ta', x: 89, y: 52, size: 1.5, rotate: 2, color: PLUM },
   { text: 'سلام', lang: 'fa', x: 91, y: 66, size: 2.1, rotate: -5, color: GREEN },
   { text: 'Hallo', lang: 'de', x: 89, y: 80, size: 2.2, rotate: -4, color: ORANGE },
-  { text: 'السلام عليكم', lang: 'ar', x: 23, y: 94, size: 1.6, rotate: -7, color: PLUM },
+  { text: 'السلام عليكم', lang: 'ar', x: 23, y: 94, size: 1.6, rotate: -7, color: PLUM, choose: 'ar' },
   { text: 'Olá', lang: 'pt', x: 42, y: 95, size: 2.1, rotate: -3, color: TEAL },
   { text: 'Ciao', lang: 'it', x: 59, y: 95, size: 2.0, rotate: -5, color: PLUM },
   { text: 'Здравствуйте', lang: 'ru', x: 79, y: 94, size: 1.6, rotate: -3, color: NAVY },
 ];
 
-/** First page: choose a language. The logo mark sits in the middle of a ring of greetings. */
+/** Shared look for one greeting; buttons add a pointer and a focus ring. */
+const WORD =
+  'inline-block rounded-2xl px-3 py-1 font-extrabold whitespace-nowrap transition-[scale,background-color,box-shadow] duration-200 hover:scale-115 hover:bg-white hover:shadow-lg';
+const BUTTON =
+  'cursor-pointer focus-visible:scale-115 focus-visible:bg-white focus-visible:shadow-lg focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring';
+
+/**
+ * First page: choose a language. The logo mark sits in the middle of a ring of
+ * greetings; clicking the English, French or Arabic greeting picks that language.
+ */
 @Component({
   selector: 'app-welcome',
-  imports: [Icon, LogoMark],
+  imports: [NgTemplateOutlet, LogoMark],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <ng-template #greeting let-g let-scale="scale">
+      @if (g.choose) {
+        <button
+          type="button"
+          [attr.lang]="g.lang"
+          [attr.dir]="g.lang === 'ar' ? 'rtl' : null"
+          [attr.aria-label]="labelFor(g)"
+          (click)="choose(g.choose)"
+          [class]="word + ' ' + button"
+          [style.color]="g.color"
+          [style.font-size.rem]="g.size * scale"
+        >
+          {{ g.text }}
+        </button>
+      } @else {
+        <span aria-hidden="true" [attr.lang]="g.lang" [class]="word" [style.color]="g.color" [style.font-size.rem]="g.size * scale">
+          {{ g.text }}
+        </span>
+      }
+    </ng-template>
+
     <section
       aria-labelledby="welcome-title"
       class="relative overflow-hidden bg-[radial-gradient(ellipse_at_center,_#ffffff_0%,_#ffffff_38%,_#f4f6f9_100%)]"
     >
-      <!-- Greetings: a wrapping band on small screens, a ring around the logo on wide ones. -->
-      <ul aria-hidden="true" class="mx-auto flex max-w-xl flex-wrap justify-center gap-x-4 gap-y-1 px-4 pt-6 lg:hidden">
-        @for (g of greetings.slice(0, 10); track g.text) {
-          <li [attr.lang]="g.lang" class="font-extrabold" [style.color]="g.color" [style.font-size.rem]="g.size * 0.55">
-            {{ g.text }}
-          </li>
-        }
-      </ul>
-      <ul aria-hidden="true" class="pointer-events-none absolute inset-0 hidden lg:block">
-        @for (g of greetings; track g.text; let i = $index) {
-          <li
-            [attr.lang]="g.lang"
-            class="absolute -translate-x-1/2 -translate-y-1/2 font-extrabold whitespace-nowrap animate-[nc-fade-in_700ms_ease-out_both]"
-            [style.left.%]="g.x"
-            [style.top.%]="g.y"
-            [style.font-size.rem]="g.size"
-            [style.color]="g.color"
-            [style.rotate]="g.rotate + 'deg'"
-            [style.animation-delay]="i * 45 + 'ms'"
-          >
-            {{ g.text }}
-          </li>
-        }
-      </ul>
+      <h1 id="welcome-title" class="sr-only">Newcomer Compass</h1>
 
-      <div class="relative mx-auto flex max-w-2xl flex-col items-center px-4 pt-6 pb-10 text-center lg:min-h-[44rem] lg:justify-center lg:py-24">
-        <div class="relative isolate">
+      <!-- Small screens: greetings wrap above and below the logo. -->
+      <div class="flex flex-col items-center gap-6 px-4 py-8 lg:hidden">
+        <ul class="flex max-w-xl flex-wrap items-center justify-center gap-x-1 gap-y-1">
+          @for (g of topBand; track g.text) {
+            <li><ng-container *ngTemplateOutlet="greeting; context: { $implicit: g, scale: 0.75 }" /></li>
+          }
+        </ul>
+        <app-logo-mark label="Newcomer Compass" class="size-32 animate-[nc-float_6s_ease-in-out_infinite] sm:size-40" />
+        <ul class="flex max-w-xl flex-wrap items-center justify-center gap-x-1 gap-y-1">
+          @for (g of bottomBand; track g.text) {
+            <li><ng-container *ngTemplateOutlet="greeting; context: { $implicit: g, scale: 0.75 }" /></li>
+          }
+        </ul>
+      </div>
+
+      <!-- Wide screens: a ring of greetings around the logo, which sits dead centre. -->
+      <div class="relative hidden min-h-[46rem] lg:block">
+        <div class="absolute top-1/2 left-1/2 isolate -translate-x-1/2 -translate-y-1/2">
           <span class="absolute inset-0 -z-10 scale-125 rounded-full bg-white blur-2xl" aria-hidden="true"></span>
-          <app-logo-mark label="Newcomer Compass" class="relative size-32 animate-[nc-float_6s_ease-in-out_infinite] sm:size-40" />
+          <app-logo-mark label="Newcomer Compass" class="relative size-48 animate-[nc-float_6s_ease-in-out_infinite]" />
         </div>
-
-        <h1 id="welcome-title" class="relative mt-6 text-3xl leading-tight font-bold sm:text-4xl">
-          <span lang="en" class="block">Choose your language</span>
-          <span class="mt-1 block text-lg font-semibold text-muted-foreground sm:text-xl">
-            <span lang="fr">Choisissez votre langue</span>
-            <span aria-hidden="true" class="mx-2">·</span>
-            <span lang="ar" dir="rtl">اختر لغتك</span>
-          </span>
-        </h1>
-
-        <ul class="relative mt-8 grid w-full gap-3 sm:grid-cols-3">
-          @for (l of languages; track l.code) {
-            <li class="flex">
-              <button
-                type="button"
-                [attr.lang]="l.code"
-                [attr.dir]="l.dir"
-                (click)="choose(l.code)"
-                class="group flex w-full flex-col items-center gap-1 rounded-2xl border-2 border-border bg-card/95 px-4 py-5 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-[#26374a] hover:shadow-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                <span class="text-2xl font-bold text-[#26374a]">{{ l.label }}</span>
-                <span class="inline-flex items-center gap-1 text-sm text-muted-foreground group-hover:text-foreground">
-                  {{ continueIn[l.code] }}
-                  <app-icon name="arrow-right" class="size-4 flip-rtl" />
-                </span>
-              </button>
+        <ul>
+          @for (g of greetings; track g.text; let i = $index) {
+            <li
+              class="absolute -translate-x-1/2 -translate-y-1/2 animate-[nc-fade-in_700ms_ease-out_both]"
+              [style.left.%]="g.x"
+              [style.top.%]="g.y"
+              [style.rotate]="g.rotate + 'deg'"
+              [style.animation-delay]="i * 45 + 'ms'"
+            >
+              <ng-container *ngTemplateOutlet="greeting; context: { $implicit: g, scale: 1.35 }" />
             </li>
           }
         </ul>
-
-        <p class="relative mt-6 max-w-md text-sm text-muted-foreground">
-          <span lang="en">{{ changeLater.en }}</span>
-          <span lang="fr" class="block">{{ changeLater.fr }}</span>
-        </p>
       </div>
     </section>
   `,
@@ -131,17 +136,21 @@ const GREETINGS: Greeting[] = [
 export class Welcome {
   protected readonly i18n = inject(I18n);
   private readonly router = inject(Router);
-  protected readonly languages = LANGUAGES;
   protected readonly greetings = GREETINGS;
-  protected readonly continueIn = {
+  /** Small screens: split so the logo sits in the middle, with all three choosable greetings near the top. */
+  protected readonly topBand = GREETINGS.filter((g) => g.choose).concat(GREETINGS.filter((g) => !g.choose).slice(0, 6));
+  protected readonly bottomBand = GREETINGS.filter((g) => !g.choose).slice(6);
+  protected readonly word = WORD;
+  protected readonly button = BUTTON;
+  protected readonly continueIn: Record<LanguageCode, string> = {
     en: EXTRA_STRINGS.en.continueIn,
     fr: EXTRA_STRINGS.fr.continueIn,
     ar: EXTRA_STRINGS.ar.continueIn,
   };
-  protected readonly changeLater = {
-    en: EXTRA_STRINGS.en.welcomeChangeLater,
-    fr: EXTRA_STRINGS.fr.welcomeChangeLater,
-  };
+
+  protected labelFor(g: Greeting): string | null {
+    return g.choose ? this.continueIn[g.choose] : null;
+  }
 
   choose(lang: LanguageCode): void {
     this.i18n.setLang(lang);
