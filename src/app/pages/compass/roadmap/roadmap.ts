@@ -10,13 +10,14 @@ import { Icon } from '../../../shared/icon';
 import { MediaQuery } from '../../../shared/media-query';
 import { JourneyStore } from '../../../state/journey-store';
 import { PlacesSection } from './places-section';
+import { RoadmapChat } from './roadmap-chat';
 import { RoadmapRow } from './roadmap-row';
 import { WhereToGo } from './where-to-go';
 
 /** Step 3: "Your roadmap": what to do (in order), where to go (map), places that can help. */
 @Component({
   selector: 'app-roadmap',
-  imports: [Icon, PlacesSection, RoadmapRow, WhereToGo],
+  imports: [Icon, PlacesSection, RoadmapChat, RoadmapRow, WhereToGo],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.journey(); as journey) {
@@ -106,6 +107,7 @@ import { WhereToGo } from './where-to-go';
             <p class="text-sm text-muted-foreground">{{ t().downloadHint }}</p>
           </div>
         </div>
+        <app-roadmap-chat />
         <div class="print-only" [innerHTML]="printHtml()"></div>
         @if (toast()) {
           <div role="status" class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-[#26374a] px-4 py-3 text-sm font-semibold text-white shadow-lg">

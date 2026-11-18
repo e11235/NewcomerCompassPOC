@@ -13,6 +13,9 @@ export interface ExtraStrings {
   close: string;
   homeLink: string;
   guideName: string;
+  roadmapChatOpen: string;
+  roadmapChatGreeting: string;
+  roadmapChatPlaceholder: string;
 }
 
 export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
@@ -25,6 +28,9 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     close: 'Close',
     homeLink: 'Newcomer Compass: choose your language',
     guideName: 'Newcomer Compass guide',
+    roadmapChatOpen: 'Ask a question about your roadmap',
+    roadmapChatGreeting: 'Do you have a question about your roadmap? Type it below.',
+    roadmapChatPlaceholder: 'Type your question',
   },
   fr: {
     continueIn: 'Continuer en français',
@@ -35,6 +41,9 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     close: 'Fermer',
     homeLink: 'Boussole des nouveaux arrivants : choisir votre langue',
     guideName: 'Guide de la Boussole des nouveaux arrivants',
+    roadmapChatOpen: 'Poser une question sur votre feuille de route',
+    roadmapChatGreeting: 'Avez-vous une question sur votre feuille de route? Écrivez-la ci-dessous.',
+    roadmapChatPlaceholder: 'Écrivez votre question',
   },
   ar: {
     continueIn: 'المتابعة بالعربية',
@@ -44,5 +53,8 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     close: 'إغلاق',
     homeLink: 'Newcomer Compass: اختر لغتك',
     guideName: 'دليل Newcomer Compass',
+    roadmapChatOpen: 'اطرح سؤالًا عن خارطة طريقك',
+    roadmapChatGreeting: 'هل لديك سؤال عن خارطة طريقك؟ اكتبه أدناه.',
+    roadmapChatPlaceholder: 'اكتب سؤالك',
   },
 };
