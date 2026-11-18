@@ -23,7 +23,7 @@ const FLAG_PATH =
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div class="flex items-center gap-3">
           <span class="flex items-center gap-2.5">
-            <svg viewBox="-160 0 960 480" class="h-5 w-10 shrink-0 ring-1 ring-border" aria-hidden="true" focusable="false">
+            <svg viewBox="-160 0 960 480" width="40" height="20" class="h-5 w-10 shrink-0 ring-1 ring-border" aria-hidden="true" focusable="false">
               <rect x="-160" y="0" width="960" height="480" fill="#fff" />
               <rect x="-160" y="0" width="240" height="480" fill="#d52b1e" />
               <rect x="560" y="0" width="240" height="480" fill="#d52b1e" />

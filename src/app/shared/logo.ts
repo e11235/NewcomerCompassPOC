@@ -26,6 +26,8 @@ export const LOGO_MARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-
   template: `
     <svg
       viewBox="-50 -50 100 100"
+      width="96"
+      height="96"
       class="size-full overflow-visible"
       [attr.role]="label() ? 'img' : null"
       [attr.aria-label]="label() || null"
