@@ -1,45 +1,40 @@
 /**
- * POST /api/chat: forwards a chat conversation to an OpenAI-compatible LLM endpoint
- * and returns the assistant's reply. Runs as a Vercel serverless function so the
- * API key stays on the server.
+ * POST /api/chat: answers a question about the Temporary Foreign Worker Program using ONLY the
+ * three allowlisted canada.ca pages in corpus/pages.json (bundled at deploy time, refreshed by
+ * the crawl workflow). Every citation is checked against the page text here, on the server, and
+ * every link is built from the allowlist; nothing the model writes becomes a URL.
  *
- * Settings come only from environment variables, so the provider (Gemini, Groq,
- * OpenRouter, …) can change without code changes:
- *   LLM_BASE_URL  e.g. https://api.groq.com/openai/v1  (no trailing /chat/completions)
- *   LLM_API_KEY   the provider's secret key
- *   LLM_MODEL     the model id at that provider
+ * Request:  { "question": "..." }   (1-1000 characters)
+ * Response: { "answer": "...", "citations": [{ "title", "quote", "link" }] }
+ *       or  { "answer": null, "sources": [{ "title", "url" }] }        (not found in the pages)
+ *       or  { "error": { "code", "message" } }  with status 400/405/413/500/502
  *
- * Request:  { "messages": [{ "role": "user" | "assistant", "content": "..." }] }
- * Response: { "reply": "..." }  or  { "error": { "code": "...", "message": "..." } }
+ * The only network call is to the LLM provider (OpenAI-compatible endpoint, no tools).
+ * Questions and answers are never logged.
  *
- * Message text is never logged.
+ * Environment: LLM_BASE_URL (e.g. https://generativelanguage.googleapis.com/v1beta/openai),
+ * LLM_API_KEY, LLM_MODEL.
  */
+import corpusJson from '../corpus/pages.json' with { type: 'json' };
+import {
+  answerSchema,
+  buildChatResponse,
+  buildSystemPrompt,
+  loadCorpus,
+  parseModelAnswer,
+} from './_lib/grounding.js';
 
-/** Abuse limits. The chat input in the app allows 500 characters per message. */
-const MAX_MESSAGES = 20;
-const MAX_CHARS_PER_MESSAGE = 2000;
-const MAX_BODY_BYTES = 64 * 1024;
-const MAX_REPLY_TOKENS = 1024;
+const MAX_QUESTION_CHARS = 1000;
+const MAX_BODY_BYTES = 16 * 1024;
+const MAX_REPLY_TOKENS = 2048;
 const PROVIDER_TIMEOUT_MS = 25_000;
 
-/** Only user and assistant turns are accepted from the browser, so callers cannot inject system prompts. */
-const ALLOWED_ROLES = new Set(['user', 'assistant']);
+// Checked once at cold start: a corpus that does not match the allowlist fails every request.
+const PAGES = loadCorpus(corpusJson);
+const SYSTEM_PROMPT = buildSystemPrompt(PAGES);
+const RESPONSE_FORMAT = { type: 'json_schema', json_schema: { name: 'grounded_answer', strict: true, schema: answerSchema() } };
 
-export type ChatRole = 'user' | 'assistant';
-export interface ChatMessage {
-  role: ChatRole;
-  content: string;
-}
-
-export type ChatErrorCode =
-  | 'method_not_allowed'
-  | 'bad_request'
-  | 'payload_too_large'
-  | 'not_configured'
-  | 'rate_limited'
-  | 'provider_config'
-  | 'provider_error'
-  | 'provider_timeout';
+export type ChatErrorCode = 'method_not_allowed' | 'bad_request' | 'payload_too_large' | 'not_configured' | 'upstream_error';
 
 function json(status: number, body: unknown, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -52,48 +47,22 @@ function fail(status: number, code: ChatErrorCode, message: string, headers?: Re
   return json(status, { error: { code, message } }, headers);
 }
 
-/** Checks the request body shape and limits. Returns the messages, or an error message. */
-export function validateMessages(body: unknown): ChatMessage[] | string {
-  if (typeof body !== 'object' || body === null || !('messages' in body)) {
-    return 'Body must be a JSON object with a "messages" array.';
-  }
-  const { messages } = body as { messages: unknown };
-  if (!Array.isArray(messages) || messages.length === 0) return '"messages" must be a non-empty array.';
-  if (messages.length > MAX_MESSAGES) return `Too many messages: at most ${MAX_MESSAGES} are allowed.`;
+const UPSTREAM_FAILED = (): Response =>
+  fail(502, 'upstream_error', 'The answer service is temporarily unavailable. Please try again later.');
 
-  const clean: ChatMessage[] = [];
-  for (const [i, m] of messages.entries()) {
-    if (typeof m !== 'object' || m === null) return `messages[${i}] must be an object.`;
-    const { role, content } = m as { role?: unknown; content?: unknown };
-    if (typeof role !== 'string' || !ALLOWED_ROLES.has(role)) {
-      return `messages[${i}].role must be "user" or "assistant".`;
-    }
-    if (typeof content !== 'string' || !content.trim()) return `messages[${i}].content must be a non-empty string.`;
-    if (content.length > MAX_CHARS_PER_MESSAGE) {
-      return `messages[${i}].content is too long: at most ${MAX_CHARS_PER_MESSAGE} characters are allowed.`;
-    }
-    clean.push({ role: role as ChatRole, content });
+/** Returns the trimmed question, or an error message for a 400. */
+export function validateQuestion(body: unknown): { question: string } | { error: string } {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return { error: 'Body must be a JSON object with a "question" string.' };
   }
-  if (clean[clean.length - 1].role !== 'user') return 'The last message must come from the user.';
-  return clean;
-}
-
-/** Pulls a readable message out of a provider's error body (OpenAI-style or otherwise). */
-function providerMessage(body: unknown): string | undefined {
-  const b = Array.isArray(body) ? body[0] : body;
-  if (typeof b !== 'object' || b === null) return undefined;
-  const err = (b as { error?: unknown }).error;
-  const msg =
-    typeof err === 'string' ? err : typeof err === 'object' && err !== null ? (err as { message?: unknown }).message : undefined;
-  return typeof msg === 'string' ? msg.slice(0, 300) : undefined;
-}
-
-async function readJson(res: Response): Promise<unknown> {
-  try {
-    return await res.json();
-  } catch {
-    return undefined;
+  const { question } = body as { question?: unknown };
+  if (typeof question !== 'string') return { error: '"question" must be a string.' };
+  const trimmed = question.trim();
+  if (!trimmed) return { error: 'Please type a question.' };
+  if (trimmed.length > MAX_QUESTION_CHARS) {
+    return { error: `Questions can be at most ${MAX_QUESTION_CHARS} characters long.` };
   }
+  return { question: trimmed };
 }
 
 export async function handleChat(request: Request): Promise<Response> {
@@ -104,14 +73,15 @@ export async function handleChat(request: Request): Promise<Response> {
   const baseUrl = process.env['LLM_BASE_URL']?.trim();
   const apiKey = process.env['LLM_API_KEY']?.trim();
   const model = process.env['LLM_MODEL']?.trim();
-  const missing = [!baseUrl && 'LLM_BASE_URL', !apiKey && 'LLM_API_KEY', !model && 'LLM_MODEL'].filter(Boolean);
-  if (missing.length) {
+  if (!baseUrl || !apiKey || !model) {
+    const missing = [!baseUrl && 'LLM_BASE_URL', !apiKey && 'LLM_API_KEY', !model && 'LLM_MODEL'].filter(Boolean);
     console.error(`[api/chat] Missing environment variables: ${missing.join(', ')}`);
-    return fail(500, 'not_configured', `The chat service is not configured. Missing: ${missing.join(', ')}.`);
+    return fail(500, 'not_configured', 'The chat service is not configured.');
   }
 
-  const declaredLength = Number(request.headers.get('content-length') ?? 0);
-  if (declaredLength > MAX_BODY_BYTES) return fail(413, 'payload_too_large', 'Request body is too large.');
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) {
+    return fail(413, 'payload_too_large', 'Request body is too large.');
+  }
   const raw = await request.text();
   if (raw.length > MAX_BODY_BYTES) return fail(413, 'payload_too_large', 'Request body is too large.');
 
@@ -121,54 +91,53 @@ export async function handleChat(request: Request): Promise<Response> {
   } catch {
     return fail(400, 'bad_request', 'Body must be valid JSON.');
   }
-  const messages = validateMessages(body);
-  if (typeof messages === 'string') return fail(400, 'bad_request', messages);
+  const checked = validateQuestion(body);
+  if ('error' in checked) return fail(400, 'bad_request', checked.error);
 
   let upstream: Response;
   try {
-    upstream = await fetch(`${baseUrl!.replace(/\/+$/, '')}/chat/completions`, {
+    upstream = await fetch(`${baseUrl.replace(/\/+$/, '')}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ model, messages, max_tokens: MAX_REPLY_TOKENS }),
+      // No tools / function calling: the model can only return the JSON answer.
+      body: JSON.stringify({
+        model,
+        temperature: 0,
+        max_tokens: MAX_REPLY_TOKENS,
+        response_format: RESPONSE_FORMAT,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: checked.question },
+        ],
+      }),
       signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
     });
   } catch (e) {
-    if (e instanceof Error && e.name === 'TimeoutError') {
-      console.error('[api/chat] Provider timed out');
-      return fail(504, 'provider_timeout', 'The language model took too long to answer. Please try again.');
-    }
-    console.error('[api/chat] Could not reach provider:', e instanceof Error ? e.message : e);
-    return fail(502, 'provider_error', 'Could not reach the language model provider.');
-  }
-
-  const data = await readJson(upstream);
-
-  if (upstream.status === 429) {
-    const retryAfter = upstream.headers.get('retry-after');
-    console.error('[api/chat] Provider rate limit reached');
-    return fail(
-      429,
-      'rate_limited',
-      'The language model is receiving too many requests. Please wait a moment and try again.',
-      retryAfter ? { 'Retry-After': retryAfter } : undefined,
-    );
+    // Only the error kind is logged: never the question or the provider's response body.
+    console.error(`[api/chat] Provider request failed: ${e instanceof Error ? e.name : 'unknown'}`);
+    return UPSTREAM_FAILED();
   }
 
   if (!upstream.ok) {
-    const detail = providerMessage(data);
-    console.error(`[api/chat] Provider error ${upstream.status}${detail ? `: ${detail}` : ''}`);
-    // 401/403/404 from the provider means our key, base URL or model is wrong: a server problem, not the caller's.
-    const code: ChatErrorCode = [401, 403, 404].includes(upstream.status) ? 'provider_config' : 'provider_error';
-    return fail(502, code, `The language model provider returned an error (${upstream.status})${detail ? `: ${detail}` : '.'}`);
+    console.error(`[api/chat] Provider returned HTTP ${upstream.status}`);
+    return UPSTREAM_FAILED();
   }
 
-  const reply = (data as { choices?: { message?: { content?: unknown } }[] } | undefined)?.choices?.[0]?.message?.content;
-  if (typeof reply !== 'string' || !reply.trim()) {
-    console.error('[api/chat] Provider response had no reply text');
-    return fail(502, 'provider_error', 'The language model returned an empty or unexpected response.');
+  let content: unknown;
+  try {
+    const data = (await upstream.json()) as { choices?: { message?: { content?: unknown } }[] };
+    content = data.choices?.[0]?.message?.content;
+  } catch {
+    content = undefined;
+  }
+  if (typeof content !== 'string' || !content.trim()) {
+    console.error('[api/chat] Provider response had no content');
+    return UPSTREAM_FAILED();
   }
 
-  return json(200, { reply: reply.trim() });
+  // A reply that is not the expected JSON, or whose citations all fail verification, becomes the
+  // "not found in the official pages" fallback rather than an error.
+  return json(200, buildChatResponse(parseModelAnswer(content), PAGES));
 }
 
 /** Vercel Node.js runtime entry point (Web-standard fetch handler). */

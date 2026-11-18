@@ -1,0 +1,46 @@
+# Refreshes corpus/pages.json from the three allowlisted canada.ca pages.
+# If the text changed, commits the new snapshot; that push triggers a Vercel redeploy.
+# The crawler exits non-zero (failing this run, nothing committed) when a page changed by more
+# than 30% or contains suspicious phrases. Review those changes by hand: run `npm run crawl`
+# locally, inspect the diff, and if it is legitimate, raise the limit or update the snapshot yourself.
+name: Crawl corpus
+
+on:
+  schedule:
+    - cron: '17 */6 * * *' # every 6 hours (at :17 to avoid the top-of-hour rush)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crawl-corpus
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run crawl
+
+      - name: Commit snapshot if it changed
+        run: |
+          if [ -z "$(git status --porcelain -- corpus/)" ]; then
+            echo "corpus/ unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add corpus/
+          git commit -m "chore: update corpus snapshot"
+          git push

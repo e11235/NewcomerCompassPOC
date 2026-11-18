@@ -3,7 +3,15 @@ import { detectIdentifier } from '../../../engine/chat-matcher';
 import type { ExtraStrings } from '../../../i18n/extra-strings';
 import { I18n } from '../../../i18n/i18n';
 import { HttpErrorResponse } from '@angular/common/http';
-import { canRetry, ChatApi, chatFailure, type ChatFailure, type ChatTurn } from '../../../services/chat-api';
+import {
+  canRetry,
+  ChatApi,
+  chatFailure,
+  isOfficialLink,
+  MAX_QUESTION_CHARS,
+  type ChatFailure,
+  type ChatResult,
+} from '../../../services/chat-api';
 import { Icon } from '../../../shared/icon';
 import { GuideSays } from '../guided-chat';
 
@@ -39,10 +47,24 @@ function logFailure(err: unknown): void {
   console.error(`[roadmap-chat] /api/chat failed (${err.status}) ${detail}`);
 }
 
+/** One question and what came back. Each question is answered on its own, without the earlier ones. */
+interface Exchange {
+  question: string;
+  result: ChatResult;
+}
+
+/** Drops any link that is not on www.canada.ca (the server only builds those; this is a second check). */
+function safeResult(result: ChatResult): ChatResult {
+  if (result.answer === null) return { answer: null, sources: result.sources.filter((s) => isOfficialLink(s.url)) };
+  return { answer: result.answer, citations: result.citations.filter((c) => isOfficialLink(c.link)) };
+}
+
 /**
- * A pop-out chat window on the roadmap page. Questions go to an LLM through the app's
- * /api/chat function. Messages that look like personal identifiers are not sent.
- * The conversation is kept in memory only, for as long as the page is open.
+ * A pop-out chat window on the roadmap page that answers questions about the Temporary Foreign
+ * Worker Program from three official canada.ca pages, through the app's /api/chat function.
+ * Answers are plain text ({{ }} interpolation only, never innerHTML) followed by the verified
+ * quotes they rest on; links come from the server's allowlist. Messages that look like personal
+ * identifiers are not sent. The conversation is kept in memory only, for as long as the page is open.
  */
 @Component({
   selector: 'app-roadmap-chat',
@@ -75,14 +97,37 @@ function logFailure(err: unknown): void {
             <p class="text-sm">{{ t().roadmapChatGreeting }}</p>
             <p class="mt-1 text-xs text-muted-foreground">{{ t().roadmapChatNotice }}</p>
           </app-guide-says>
-          @for (m of turns(); track $index) {
-            @if (m.role === 'user') {
-              <div class="flex justify-end">
-                <p class="max-w-[85%] rounded-2xl rounded-se-sm bg-[#26374a] px-4 py-2 text-sm break-words whitespace-pre-wrap text-white">{{ m.content }}</p>
-              </div>
-            } @else {
-              <app-guide-says><p class="text-sm break-words whitespace-pre-wrap">{{ m.content }}</p></app-guide-says>
-            }
+          @for (x of exchanges(); track $index) {
+            <div class="flex justify-end">
+              <p class="max-w-[85%] rounded-2xl rounded-se-sm bg-[#26374a] px-4 py-2 text-sm break-words whitespace-pre-wrap text-white">{{ x.question }}</p>
+            </div>
+            <app-guide-says>
+              @if (x.result.answer !== null) {
+                <p class="text-sm break-words whitespace-pre-wrap">{{ x.result.answer }}</p>
+                @for (c of x.result.citations; track $index) {
+                  <figure class="mt-3">
+                    <blockquote class="border-s-4 border-[#26374a]/40 ps-3 text-sm break-words italic" lang="en" dir="ltr">“{{ c.quote }}”</blockquote>
+                    <figcaption class="mt-1 ps-3 text-xs">
+                      <a class="underline underline-offset-2 break-words" [href]="c.link" target="_blank" rel="noopener noreferrer"
+                        >{{ c.title }}<span class="sr-only"> {{ t().roadmapChatNewTab }}</span></a
+                      >
+                    </figcaption>
+                  </figure>
+                }
+              } @else {
+                <p class="text-sm">{{ t().roadmapChatNotFound }}</p>
+                <ul class="mt-2 list-disc space-y-1 ps-5 text-sm">
+                  @for (s of x.result.sources; track s.url) {
+                    <li>
+                      <a class="underline underline-offset-2 break-words" [href]="s.url" target="_blank" rel="noopener noreferrer"
+                        >{{ s.title }}<span class="sr-only"> {{ t().roadmapChatNewTab }}</span></a
+                      >
+                    </li>
+                  }
+                </ul>
+              }
+              <p class="mt-3 text-xs text-muted-foreground">{{ t().roadmapChatDisclaimer }}</p>
+            </app-guide-says>
           }
           @if (pending()) {
             <app-guide-says>
@@ -97,8 +142,8 @@ function logFailure(err: unknown): void {
           @if (failure(); as f) {
             <app-guide-says tone="warn">
               <p class="text-sm">{{ failureMessage() }}</p>
-              @if (canRetry(f)) {
-                <button type="button" class="btn btn-secondary mt-2 h-9 text-sm" (click)="ask()">{{ t().roadmapChatRetry }}</button>
+              @if (canRetry(f) && lastQuestion()) {
+                <button type="button" class="btn btn-secondary mt-2 h-9 text-sm" (click)="ask(lastQuestion()!)">{{ t().roadmapChatRetry }}</button>
               }
             </app-guide-says>
           }
@@ -117,7 +162,7 @@ function logFailure(err: unknown): void {
             (input)="typed.set($any($event.target).value)"
             [placeholder]="t().roadmapChatPlaceholder"
             autocomplete="off"
-            maxlength="500"
+            [attr.maxlength]="maxChars"
           />
           <button
             type="submit"
@@ -148,11 +193,14 @@ export class RoadmapChat {
   protected readonly i18n = inject(I18n);
   protected readonly t = this.i18n.t;
   private readonly chatApi = inject(ChatApi);
+  protected readonly maxChars = MAX_QUESTION_CHARS;
 
   protected readonly open = signal(false);
   protected readonly typed = signal('');
-  protected readonly turns = signal<ChatTurn[]>([]);
+  protected readonly exchanges = signal<Exchange[]>([]);
   protected readonly pending = signal(false);
+  /** The question that failed, kept so "Try again" can resend it. */
+  protected readonly lastQuestion = signal<string | null>(null);
   protected readonly failure = signal<ChatFailure | null>(null);
   protected readonly canRetry = canRetry;
   protected readonly failureMessage = computed(() => {
@@ -186,23 +234,24 @@ export class RoadmapChat {
       this.scrollToEnd();
       return;
     }
-    this.turns.update((m) => [...m, { role: 'user', content: text }]);
     this.typed.set('');
     // Clear the box directly too: the [value] binding may not see a change if it never rendered the typed text.
     const input = this.input()?.nativeElement;
     if (input) input.value = '';
-    this.ask();
+    this.ask(text);
   }
 
-  /** Asks for a reply to the conversation so far; also used to retry after an error. */
-  protected ask(): void {
-    if (this.pending() || this.turns().at(-1)?.role !== 'user') return;
+  /** Sends one question; also used to retry after an error. */
+  protected ask(question: string): void {
+    if (this.pending()) return;
     this.pending.set(true);
     this.failure.set(null);
+    this.lastQuestion.set(question);
     this.scrollToEnd();
-    this.chatApi.reply(this.turns()).subscribe({
-      next: (reply) => {
-        this.turns.update((m) => [...m, { role: 'assistant', content: reply }]);
+    this.chatApi.ask(question).subscribe({
+      next: (result) => {
+        this.exchanges.update((list) => [...list, { question, result: safeResult(result) }]);
+        this.lastQuestion.set(null);
         this.pending.set(false);
         this.scrollToEnd();
       },

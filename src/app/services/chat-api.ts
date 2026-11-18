@@ -1,48 +1,56 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, type Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 
-/** One turn of a conversation, in the shape /api/chat accepts. */
-export interface ChatTurn {
-  role: 'user' | 'assistant';
-  content: string;
+/** Matches the server's limit (api/chat.ts). */
+export const MAX_QUESTION_CHARS = 1000;
+
+/** A verified quote from one of the official pages. `link` is built by the server from its allowlist. */
+export interface Citation {
+  title: string;
+  quote: string;
+  link: string;
 }
 
-/** Matches the server's limit (api/chat.ts): only the most recent turns are sent. */
-export const MAX_CHAT_TURNS = 20;
+/** What /api/chat returns: an answer with citations, or "not found" with the official pages. */
+export type ChatResult =
+  | { answer: string; citations: Citation[] }
+  | { answer: null; sources: { title: string; url: string }[] };
 
 /**
  * What went wrong, in terms the chat window can explain to the person:
  * - offline:     the browser has no internet connection
  * - unreachable: the request never got a response (network problem, or the server is down)
  * - busy:        too many requests (rate limit)
- * - timeout:     the language model took too long to answer
- * - rejected:    the server refused the question itself (too long, malformed)
+ * - timeout:     the request took too long
+ * - rejected:    the server refused the question itself (empty, too long, malformed)
  * - not_set_up:  the chat service is missing or misconfigured on this site (retrying will not help)
  * - unavailable: anything else (the language model provider failed)
  */
 export type ChatFailure = 'offline' | 'unreachable' | 'busy' | 'timeout' | 'rejected' | 'not_set_up' | 'unavailable';
 
-/** Failures where trying the same question again cannot succeed until something else changes. */
+/** Failures where asking the same question again cannot succeed until something else changes. */
 const NOT_RETRYABLE: ReadonlySet<ChatFailure> = new Set(['rejected', 'not_set_up']);
 
 export function canRetry(failure: ChatFailure): boolean {
   return !NOT_RETRYABLE.has(failure);
 }
 
+/** Links are only ever shown for the official pages; anything else is dropped (defence in depth). */
+export function isOfficialLink(url: string): boolean {
+  return url.startsWith('https://www.canada.ca/');
+}
+
 /**
- * Talks to the app's own /api/chat serverless function, which holds the LLM API key
- * and forwards the conversation to the provider. No key or provider details live here.
+ * Talks to the app's own /api/chat function, which answers from three official canada.ca pages
+ * and verifies every quote. No key or provider details live here.
  */
 @Injectable({ providedIn: 'root' })
 export class ChatApi {
   private readonly http = inject(HttpClient);
 
-  /** Sends the conversation (ending with the person's latest message) and emits the reply text. */
-  reply(turns: readonly ChatTurn[]): Observable<string> {
-    return this.http
-      .post<{ reply: string }>('/api/chat', { messages: turns.slice(-MAX_CHAT_TURNS) })
-      .pipe(map((res) => res.reply));
+  ask(question: string): Observable<ChatResult> {
+    return this.http.post<ChatResult>('/api/chat', { question });
   }
 }
 
@@ -54,24 +62,19 @@ function serverCode(error: HttpErrorResponse): string | undefined {
   return typeof code === 'string' ? code : undefined;
 }
 
-/** Sorts an error from {@link ChatApi.reply} into a kind of message for the person. */
+/** Sorts an error from {@link ChatApi.ask} into a kind of message for the person. */
 export function chatFailure(error: unknown): ChatFailure {
   if (!(error instanceof HttpErrorResponse)) return 'unavailable';
   if (error.status === 0) return navigator.onLine === false ? 'offline' : 'unreachable';
 
   switch (serverCode(error)) {
-    case 'rate_limited':
-      return 'busy';
-    case 'provider_timeout':
-      return 'timeout';
     case 'bad_request':
     case 'payload_too_large':
       return 'rejected';
     case 'not_configured':
-    case 'provider_config':
     case 'method_not_allowed':
       return 'not_set_up';
-    case 'provider_error':
+    case 'upstream_error':
       return 'unavailable';
   }
 
@@ -85,7 +88,7 @@ export function chatFailure(error: unknown): ChatFailure {
     case 400:
     case 413:
       return 'rejected';
-    // 404: /api/chat does not exist here (e.g. running `ng serve` instead of `vercel dev`).
+    // 404: /api/chat does not exist here (e.g. running `ng serve` without `vercel dev`).
     case 404:
     case 405:
       return 'not_set_up';

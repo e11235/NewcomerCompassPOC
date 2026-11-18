@@ -3,7 +3,8 @@
 Front-end proof of concept for **Newcomer Compass**: a tool that helps newcomers to Canada work
 out what to do first, what comes next and where to go. The roadmap itself is built by deterministic
 rules, with no AI; only the optional chat window on the roadmap page asks an LLM, through a small
-serverless function (see [Roadmap chat](#roadmap-chat-llm)). The content is synthetic demonstration data, and links and phone numbers must be confirmed against official
+serverless function, and it answers only from three official canada.ca pages (see
+[Roadmap chat](#roadmap-chat-grounded-llm)). The content is synthetic demonstration data, and links and phone numbers must be confirmed against official
 sources before use.
 
 This branch (`feature/compass-click-through`) follows the click-through prototype
@@ -18,46 +19,90 @@ Requires Node.js 20.19+ or 22.12+.
 npm install
 npm start          # opens http://localhost:4200
 npm run lint       # ESLint, including Angular template accessibility rules
+npm run test:api   # unit tests for citation verification and link building
+npm run crawl      # refresh corpus/pages.json from the three canada.ca pages
 ```
 
-`npm start` runs the Angular app only. The roadmap chat then shows an error because `/api/chat`
-does not exist. To run the chat as well, use `vercel dev` (see below).
+`npm start` runs the Angular app only. The roadmap chat then says it is not set up, because
+`/api/chat` is not running. To run the chat as well, see [Run locally](#run-locally).
 
-## Roadmap chat (LLM)
+## Roadmap chat (grounded LLM)
 
-The chat window on the roadmap page sends the conversation to `/api/chat`
-(`api/chat.ts`), a Vercel serverless function. The function adds the API key and forwards the
-messages to any OpenAI-compatible `/chat/completions` endpoint, so the key never reaches the
-browser. It is configured only through environment variables:
+The chat window on the roadmap page answers questions about Canada's Temporary Foreign Worker
+Program **only** from these three pages (the whole corpus; no other URL is ever fetched or linked):
 
-| Variable       | Example                                                                      |
-| -------------- | ---------------------------------------------------------------------------- |
-| `LLM_BASE_URL` | `https://api.groq.com/openai/v1`, `https://openrouter.ai/api/v1`, `https://generativelanguage.googleapis.com/v1beta/openai` |
-| `LLM_API_KEY`  | The provider's secret key                                                    |
-| `LLM_MODEL`    | A model id offered by that provider                                          |
+| id                 | Page |
+| ------------------ | ---- |
+| `tfw-program`      | https://www.canada.ca/en/employment-social-development/programs/temporary-foreign-worker.html |
+| `report-abuse`     | https://www.canada.ca/en/employment-social-development/services/foreign-workers/report-abuse.html |
+| `protected-rights` | https://www.canada.ca/en/employment-social-development/services/foreign-workers/protected-rights.html |
 
-To switch providers, change the three variables; no code changes are needed.
+How it fits together:
 
-### Run locally with `vercel dev`
+1. **Crawler** (`scripts/crawl.ts`, `npm run crawl`): the only code that fetches external pages.
+   It fetches the hardcoded allowlist (`api/_lib/sources.ts`) over HTTPS with `redirect: 'manual'`,
+   fails if a redirect leaves `https://www.canada.ca`, keeps only the visible text of `<main>`
+   (no scripts, styles, nav, header, footer, aside, hidden elements, language picker or
+   "On this page" list), and writes `corpus/pages.json` (`id, title, url, text, fetchedAt, hash`)
+   only when a sha256 hash changed. It exits non-zero without writing if a page's text changed by
+   more than 30% (by words) or contains phrases aimed at an LLM ("ignore previous instructions",
+   "system prompt", …), so a person reviews the change.
+2. **Workflow** (`.github/workflows/crawl.yml`): runs the crawler every 6 hours and on demand, and
+   commits `chore: update corpus snapshot` when `corpus/` changed. That push redeploys on Vercel.
+3. **Function** (`api/chat.ts`, `POST /api/chat`, body `{ "question": "..." }`, 1–1000 characters):
+   imports `corpus/pages.json` at build time (no runtime fetches) and sends all three pages,
+   wrapped in `<source>` tags as reference material, to the LLM with structured JSON output and
+   temperature 0. The model gets no tools. Every citation is verified on the server
+   (`api/_lib/grounding.ts`): the quote must appear in that page's text, ignoring case, whitespace
+   and typographic quotes/dashes, and be 15–300 characters long. Failing citations are dropped, and
+   the quote shown is the page's own wording. Links are the allowlisted URL plus a
+   `#:~:text=` fragment; nothing the model writes becomes a URL. Responses:
+   - `{ "answer": "...", "citations": [{ "title", "quote", "link" }] }`
+   - `{ "answer": null, "sources": [{ "title", "url" }] }` when the pages do not answer the question,
+     the reply was malformed, or no citation survived
+   - `{ "error": { "code", "message" } }` with 400 (empty/too long/bad JSON), 405, 413, 500 (not
+     configured) or 502 (any LLM failure; generic message)
+
+   Questions and answers are never logged.
+4. **UI** (`src/app/pages/compass/roadmap/roadmap-chat.ts`): renders answers as plain text
+   (`{{ }}` only, never `innerHTML`), each verified quote as a blockquote with the page title linked
+   (new tab, `rel="noopener noreferrer"`), or "I couldn't find that in the official pages" with the
+   three links. Each question is answered on its own.
+
+The LLM is configured only through environment variables (any OpenAI-compatible endpoint that
+supports `response_format: json_schema`; currently Google Gemini):
+
+| Variable       | Example                                                     |
+| -------------- | ----------------------------------------------------------- |
+| `LLM_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai`   |
+| `LLM_API_KEY`  | The provider's secret key                                   |
+| `LLM_MODEL`    | e.g. `gemini-flash-lite-latest`                             |
+
+### Run locally
+
+`vercel dev` serves only the `/api` functions (its `devCommand` in `vercel.json` is a placeholder);
+`ng serve` serves the app and forwards `/api` to it (`proxy.conf.json`).
 
 ```bash
 npm install -g vercel   # once
 vercel link             # once: connect this folder to your Vercel project
-cp .env.example .env.local
-# edit .env.local and fill in LLM_BASE_URL, LLM_API_KEY and LLM_MODEL
-vercel dev              # serves the Angular app and /api/chat together, usually on http://localhost:3000
+vercel env pull .env.local   # or: cp .env.example .env.local and fill in the three variables
+
+vercel dev --listen 3000     # terminal 1: /api/chat on http://localhost:3000
+npm start                    # terminal 2: the app on http://localhost:4200, /api proxied to :3000
 ```
 
-If the variables are already set in the Vercel project, `vercel env pull .env.local` downloads them
-instead. `.env*` files (apart from `.env.example`) are git-ignored; never commit a real key, and
-never put it in Angular code or `environment.ts`. For deployments, set the variables under
-**Project Settings → Environment Variables**.
+`.env*` files (apart from `.env.example`) are git-ignored; never commit a real key, and never put
+it in Angular code. For deployments, set the variables under **Project Settings → Environment
+Variables**. To type-check: `npx tsc -p api` and `npx tsc -p scripts`.
 
-The function accepts `POST` only, at most 20 messages of up to 2,000 characters each, and only
-`user` and `assistant` roles. It returns `{ "reply": "..." }`, or `{ "error": { "code", "message" } }`
-with status 400/405/413 (bad request), 429 (provider rate limit), 500 (missing variables) or
-502/504 (provider error or timeout). `vercel.json` sends every path except `/api/*` to the Angular
-app. To type-check the function, run `npx tsc -p api`.
+### Security headers
+
+`vercel.json` sends a Content-Security-Policy on every response: `default-src 'self'`,
+`script-src 'self'`, `connect-src 'self'`, `img-src 'self' data:`, `font-src 'self'`,
+`object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`, and
+`style-src 'self' 'unsafe-inline'` (Angular injects component styles as inline `<style>` elements).
+`ng serve` does not apply these headers; they take effect on Vercel deployments.
 
 ## Pages
 
@@ -72,13 +117,15 @@ machine translated.
 ## Structure
 
 ```
-api/              Vercel serverless function: /api/chat (LLM proxy)
+api/              Vercel function /api/chat (grounded answers); api/_lib: allowlist, citation checks, tests
+corpus/           pages.json: the committed snapshot of the three canada.ca pages
+scripts/          crawl.ts: the crawler that refreshes corpus/pages.json
 src/app/
   content/        Synthetic content (situations, questions, programs, rules, places) and its types
   engine/         Deterministic rules engine, roadmap builder, map/places logic, chat answer matching,
                   printable/downloadable roadmap document
   i18n/           UI strings (en/fr/ar) and the I18n service
-  services/       ChatApi: calls /api/chat with HttpClient
+  services/       ChatApi: posts a question to /api/chat with HttpClient
   state/          JourneyStore: the current screen, answers and completed steps (signals)
   layout/         Header, footer, "Get help from a person" sheet
   pages/welcome/  Language page
@@ -88,6 +135,6 @@ src/app/
 
 Answers are kept in memory only: they are never logged, stored in the browser or sent anywhere.
 Only the chosen language is remembered (in `localStorage`). Questions typed into the roadmap chat
-are sent to the configured LLM provider (not the answers given earlier), but they are not logged by
-the function. The chat refuses to send messages that contain personal identifiers such as phone
+are sent to the configured LLM provider (not the answers given earlier), but neither questions nor
+answers are logged by the function. The chat refuses to send messages that contain personal identifiers such as phone
 numbers or email addresses.
