@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "angular",
+  "devCommand": "node -e \"require('http').createServer((q,r)=>{r.statusCode=404;r.end('vercel dev serves /api only; open the app via ng serve')}).listen(process.env.PORT)\"",
   "outputDirectory": "dist/newcomer-compass/browser",
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }
