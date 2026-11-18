@@ -48,7 +48,7 @@ export const MAX_RADIO_OPTIONS = 5;
               <div class="max-w-md">
                 <input
                   [id]="'q-' + q.id"
-                  class="text-input h-14 rounded-xl border-2 bg-card px-4 text-base md:text-base"
+                  class="field-input h-14 rounded-xl border-2 bg-card px-4 text-base md:text-base"
                   [value]="textValue()"
                   (input)="draft.set({ id: q.id, text: $any($event.target).value }); error.set(null)"
                   [attr.aria-labelledby]="labelId()"

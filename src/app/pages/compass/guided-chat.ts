@@ -121,7 +121,7 @@ type Reply =
       <label for="chat-text" class="sr-only">{{ t().chatTypeLabel }}</label>
       <input
         id="chat-text"
-        class="text-input h-11 flex-1 rounded-full text-base md:text-base"
+        class="field-input h-11 flex-1 rounded-full text-base md:text-base"
         [value]="typed()"
         (input)="typed.set($any($event.target).value)"
         [placeholder]="q.kind === 'text' ? t().cityExample : t().chatTypePlaceholder"

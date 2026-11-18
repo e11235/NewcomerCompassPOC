@@ -116,7 +116,7 @@
   .btn-icon {
     @apply size-9 p-0;
   }
-  .text-input {
+  .field-input {
     @apply h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid aria-invalid:border-destructive md:text-sm;
   }
   .link {
