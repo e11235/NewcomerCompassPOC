@@ -1,11 +1,24 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { detectIdentifier } from '../../../engine/chat-matcher';
 import { I18n } from '../../../i18n/i18n';
+import { ChatApi, chatFailure, type ChatFailure, type ChatTurn } from '../../../services/chat-api';
 import { Icon } from '../../../shared/icon';
 import { GuideSays } from '../guided-chat';
 
 /**
- * A pop-out chat window on the roadmap page. For now it only echoes what the person
- * types into the conversation; nothing answers yet.
+ * True when a question contains an actual personal identifier. Unlike the guided chat, merely
+ * naming a document ("How do I renew my passport?") is fine here, so keyword-only matches
+ * need digits to count, except for email addresses and "my name is …".
+ */
+function sharesIdentifier(text: string): boolean {
+  const kind = detectIdentifier(text);
+  return kind === 'email' || kind === 'name' || (kind !== null && /\d/.test(text));
+}
+
+/**
+ * A pop-out chat window on the roadmap page. Questions go to an LLM through the app's
+ * /api/chat function. Messages that look like personal identifiers are not sent.
+ * The conversation is kept in memory only, for as long as the page is open.
  */
 @Component({
   selector: 'app-roadmap-chat',
@@ -34,11 +47,37 @@ import { GuideSays } from '../guided-chat';
         </header>
 
         <div #log class="flex-1 space-y-3 overflow-y-auto p-4" role="log" aria-live="polite">
-          <app-guide-says><p class="text-sm">{{ t().roadmapChatGreeting }}</p></app-guide-says>
-          @for (m of messages(); track $index) {
-            <div class="flex justify-end">
-              <p class="max-w-[85%] rounded-2xl rounded-se-sm bg-[#26374a] px-4 py-2 text-sm break-words whitespace-pre-wrap text-white">{{ m }}</p>
-            </div>
+          <app-guide-says>
+            <p class="text-sm">{{ t().roadmapChatGreeting }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t().roadmapChatNotice }}</p>
+          </app-guide-says>
+          @for (m of turns(); track $index) {
+            @if (m.role === 'user') {
+              <div class="flex justify-end">
+                <p class="max-w-[85%] rounded-2xl rounded-se-sm bg-[#26374a] px-4 py-2 text-sm break-words whitespace-pre-wrap text-white">{{ m.content }}</p>
+              </div>
+            } @else {
+              <app-guide-says><p class="text-sm break-words whitespace-pre-wrap">{{ m.content }}</p></app-guide-says>
+            }
+          }
+          @if (pending()) {
+            <app-guide-says>
+              <span class="flex h-5 items-center gap-1" aria-hidden="true">
+                <span class="size-1.5 animate-bounce rounded-full bg-muted-foreground"></span>
+                <span class="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]"></span>
+                <span class="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]"></span>
+              </span>
+              <span class="sr-only">{{ t().roadmapChatThinking }}</span>
+            </app-guide-says>
+          }
+          @if (failure(); as f) {
+            <app-guide-says tone="warn">
+              <p class="text-sm">{{ f === 'busy' ? t().roadmapChatBusy : t().roadmapChatUnavailable }}</p>
+              <button type="button" class="btn btn-secondary mt-2 h-9 text-sm" (click)="ask()">{{ t().roadmapChatRetry }}</button>
+            </app-guide-says>
+          }
+          @if (personalInfo()) {
+            <app-guide-says tone="warn"><p class="text-sm">{{ t().roadmapChatPersonalInfo }}</p></app-guide-says>
           }
         </div>
 
@@ -54,7 +93,12 @@ import { GuideSays } from '../guided-chat';
             autocomplete="off"
             maxlength="500"
           />
-          <button type="submit" class="btn btn-primary btn-icon size-11 rounded-full" [attr.aria-label]="t().send" [disabled]="!typed().trim()">
+          <button
+            type="submit"
+            class="btn btn-primary btn-icon size-11 rounded-full"
+            [attr.aria-label]="t().send"
+            [disabled]="!typed().trim() || pending()"
+          >
             <app-icon name="send-horizontal" class="flip-rtl" />
           </button>
         </form>
@@ -77,10 +121,14 @@ import { GuideSays } from '../guided-chat';
 export class RoadmapChat {
   protected readonly i18n = inject(I18n);
   protected readonly t = this.i18n.t;
+  private readonly chatApi = inject(ChatApi);
 
   protected readonly open = signal(false);
   protected readonly typed = signal('');
-  protected readonly messages = signal<string[]>([]);
+  protected readonly turns = signal<ChatTurn[]>([]);
+  protected readonly pending = signal(false);
+  protected readonly failure = signal<ChatFailure | null>(null);
+  protected readonly personalInfo = signal(false);
 
   private readonly log = viewChild<ElementRef<HTMLElement>>('log');
   private readonly input = viewChild<ElementRef<HTMLInputElement>>('input');
@@ -100,12 +148,42 @@ export class RoadmapChat {
 
   protected send(): void {
     const text = this.typed().trim();
-    if (!text) return;
-    this.messages.update((m) => [...m, text]);
+    if (!text || this.pending()) return;
+    // Keep the text in the box so the person can remove the personal details and send again.
+    this.personalInfo.set(sharesIdentifier(text));
+    if (this.personalInfo()) {
+      this.scrollToEnd();
+      return;
+    }
+    this.turns.update((m) => [...m, { role: 'user', content: text }]);
     this.typed.set('');
     // Clear the box directly too: the [value] binding may not see a change if it never rendered the typed text.
     const input = this.input()?.nativeElement;
     if (input) input.value = '';
+    this.ask();
+  }
+
+  /** Asks for a reply to the conversation so far; also used to retry after an error. */
+  protected ask(): void {
+    if (this.pending() || this.turns().at(-1)?.role !== 'user') return;
+    this.pending.set(true);
+    this.failure.set(null);
+    this.scrollToEnd();
+    this.chatApi.reply(this.turns()).subscribe({
+      next: (reply) => {
+        this.turns.update((m) => [...m, { role: 'assistant', content: reply }]);
+        this.pending.set(false);
+        this.scrollToEnd();
+      },
+      error: (err: unknown) => {
+        this.failure.set(chatFailure(err));
+        this.pending.set(false);
+        this.scrollToEnd();
+      },
+    });
+  }
+
+  private scrollToEnd(): void {
     requestAnimationFrame(() => {
       const el = this.log()?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;

@@ -4,3 +4,8 @@
 /.angular
 *.log
 .DS_Store
+
+# Environment files hold secrets (the LLM API key); only the example is committed
+.env*
+!.env.example
+.vercel

@@ -16,6 +16,12 @@ export interface ExtraStrings {
   roadmapChatOpen: string;
   roadmapChatGreeting: string;
   roadmapChatPlaceholder: string;
+  roadmapChatNotice: string;
+  roadmapChatThinking: string;
+  roadmapChatBusy: string;
+  roadmapChatUnavailable: string;
+  roadmapChatRetry: string;
+  roadmapChatPersonalInfo: string;
 }
 
 export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
@@ -31,6 +37,12 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     roadmapChatOpen: 'Ask a question about your roadmap',
     roadmapChatGreeting: 'Do you have a question about your roadmap? Type it below.',
     roadmapChatPlaceholder: 'Type your question',
+    roadmapChatNotice: 'Answers are written by AI and may be wrong. Do not share personal information.',
+    roadmapChatThinking: 'The guide is writing an answer',
+    roadmapChatBusy: 'Too many people are asking questions right now. Please wait a moment and try again.',
+    roadmapChatUnavailable: 'Sorry, the guide cannot answer right now. Please try again later.',
+    roadmapChatRetry: 'Try again',
+    roadmapChatPersonalInfo: 'Please do not share personal details like names, numbers or addresses. Your message was not sent. Remove them and try again.',
   },
   fr: {
     continueIn: 'Continuer en français',
@@ -44,6 +56,12 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     roadmapChatOpen: 'Poser une question sur votre feuille de route',
     roadmapChatGreeting: 'Avez-vous une question sur votre feuille de route? Écrivez-la ci-dessous.',
     roadmapChatPlaceholder: 'Écrivez votre question',
+    roadmapChatNotice: "Les réponses sont rédigées par l'IA et peuvent contenir des erreurs. Ne communiquez pas de renseignements personnels.",
+    roadmapChatThinking: 'Le guide rédige une réponse',
+    roadmapChatBusy: 'Trop de personnes posent des questions en ce moment. Veuillez patienter un instant et réessayer.',
+    roadmapChatUnavailable: 'Désolé, le guide ne peut pas répondre pour le moment. Veuillez réessayer plus tard.',
+    roadmapChatRetry: 'Réessayer',
+    roadmapChatPersonalInfo: "Veuillez ne pas communiquer de renseignements personnels comme des noms, des numéros ou des adresses. Votre message n'a pas été envoyé. Retirez-les et réessayez.",
   },
   ar: {
     continueIn: 'المتابعة بالعربية',
@@ -56,5 +74,11 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     roadmapChatOpen: 'اطرح سؤالًا عن خارطة طريقك',
     roadmapChatGreeting: 'هل لديك سؤال عن خارطة طريقك؟ اكتبه أدناه.',
     roadmapChatPlaceholder: 'اكتب سؤالك',
+    roadmapChatNotice: 'يكتب الذكاء الاصطناعي الإجابات وقد تكون خاطئة. لا تشارك معلومات شخصية.',
+    roadmapChatThinking: 'يكتب الدليل إجابة',
+    roadmapChatBusy: 'يطرح عدد كبير من الأشخاص أسئلة الآن. يُرجى الانتظار قليلًا ثم المحاولة مرة أخرى.',
+    roadmapChatUnavailable: 'عذرًا، لا يستطيع الدليل الإجابة الآن. يُرجى المحاولة مرة أخرى لاحقًا.',
+    roadmapChatRetry: 'إعادة المحاولة',
+    roadmapChatPersonalInfo: 'يُرجى عدم مشاركة تفاصيل شخصية مثل الأسماء أو الأرقام أو العناوين. لم تُرسَل رسالتك. احذفها وحاول مرة أخرى.',
   },
 };
