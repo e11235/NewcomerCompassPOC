@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { detectIdentifier } from '../../../engine/chat-matcher';
+import type { ExtraStrings } from '../../../i18n/extra-strings';
 import { I18n } from '../../../i18n/i18n';
-import { ChatApi, chatFailure, type ChatFailure, type ChatTurn } from '../../../services/chat-api';
+import { HttpErrorResponse } from '@angular/common/http';
+import { canRetry, ChatApi, chatFailure, type ChatFailure, type ChatTurn } from '../../../services/chat-api';
 import { Icon } from '../../../shared/icon';
 import { GuideSays } from '../guided-chat';
 
@@ -13,6 +15,28 @@ import { GuideSays } from '../guided-chat';
 function sharesIdentifier(text: string): boolean {
   const kind = detectIdentifier(text);
   return kind === 'email' || kind === 'name' || (kind !== null && /\d/.test(text));
+}
+
+/** The message shown for each kind of failure. */
+const FAILURE_MESSAGES: Record<ChatFailure, keyof ExtraStrings> = {
+  offline: 'roadmapChatOffline',
+  unreachable: 'roadmapChatUnreachable',
+  busy: 'roadmapChatBusy',
+  timeout: 'roadmapChatTimeout',
+  rejected: 'roadmapChatRejected',
+  not_set_up: 'roadmapChatNotSetUp',
+  unavailable: 'roadmapChatUnavailable',
+};
+
+/** Logs the technical reason for developers; the person sees a plain-language message instead. */
+function logFailure(err: unknown): void {
+  if (!(err instanceof HttpErrorResponse)) {
+    console.error('[roadmap-chat] Chat request failed:', err);
+    return;
+  }
+  const body = err.error as { error?: { code?: string; message?: string } } | null;
+  const detail = body?.error ? `${body.error.code}: ${body.error.message}` : err.message;
+  console.error(`[roadmap-chat] /api/chat failed (${err.status}) ${detail}`);
 }
 
 /**
@@ -72,8 +96,10 @@ function sharesIdentifier(text: string): boolean {
           }
           @if (failure(); as f) {
             <app-guide-says tone="warn">
-              <p class="text-sm">{{ f === 'busy' ? t().roadmapChatBusy : t().roadmapChatUnavailable }}</p>
-              <button type="button" class="btn btn-secondary mt-2 h-9 text-sm" (click)="ask()">{{ t().roadmapChatRetry }}</button>
+              <p class="text-sm">{{ failureMessage() }}</p>
+              @if (canRetry(f)) {
+                <button type="button" class="btn btn-secondary mt-2 h-9 text-sm" (click)="ask()">{{ t().roadmapChatRetry }}</button>
+              }
             </app-guide-says>
           }
           @if (personalInfo()) {
@@ -128,6 +154,11 @@ export class RoadmapChat {
   protected readonly turns = signal<ChatTurn[]>([]);
   protected readonly pending = signal(false);
   protected readonly failure = signal<ChatFailure | null>(null);
+  protected readonly canRetry = canRetry;
+  protected readonly failureMessage = computed(() => {
+    const f = this.failure();
+    return f ? this.t()[FAILURE_MESSAGES[f]] : '';
+  });
   protected readonly personalInfo = signal(false);
 
   private readonly log = viewChild<ElementRef<HTMLElement>>('log');
@@ -176,6 +207,7 @@ export class RoadmapChat {
         this.scrollToEnd();
       },
       error: (err: unknown) => {
+        logFailure(err);
         this.failure.set(chatFailure(err));
         this.pending.set(false);
         this.scrollToEnd();

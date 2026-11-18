@@ -37,6 +37,7 @@ export type ChatErrorCode =
   | 'payload_too_large'
   | 'not_configured'
   | 'rate_limited'
+  | 'provider_config'
   | 'provider_error'
   | 'provider_timeout';
 
@@ -156,8 +157,9 @@ export async function handleChat(request: Request): Promise<Response> {
   if (!upstream.ok) {
     const detail = providerMessage(data);
     console.error(`[api/chat] Provider error ${upstream.status}${detail ? `: ${detail}` : ''}`);
-    // 401/403 from the provider means our key or model is wrong: a server problem, not the caller's.
-    return fail(502, 'provider_error', `The language model provider returned an error (${upstream.status})${detail ? `: ${detail}` : '.'}`);
+    // 401/403/404 from the provider means our key, base URL or model is wrong: a server problem, not the caller's.
+    const code: ChatErrorCode = [401, 403, 404].includes(upstream.status) ? 'provider_config' : 'provider_error';
+    return fail(502, code, `The language model provider returned an error (${upstream.status})${detail ? `: ${detail}` : '.'}`);
   }
 
   const reply = (data as { choices?: { message?: { content?: unknown } }[] } | undefined)?.choices?.[0]?.message?.content;
