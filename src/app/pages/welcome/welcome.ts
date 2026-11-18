@@ -71,6 +71,7 @@ const ACTIVE = 'scale-115 bg-white shadow-lg';
   selector: 'app-welcome',
   imports: [NgTemplateOutlet, LogoMark],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-1 flex-col' },
   template: `
     <ng-template #greeting let-g let-scale="scale">
       @if (g.choose) {
@@ -85,7 +86,7 @@ const ACTIVE = 'scale-115 bg-white shadow-lg';
           (blur)="resetHighlight()"
           [class]="classFor(g) + ' ' + button"
           [style.color]="g.color"
-          [style.font-size.rem]="g.size * scale"
+          [style.font-size]="'calc(' + g.size * scale + ' * var(--u, 1rem))'"
         >
           {{ g.text }}
         </button>
@@ -96,7 +97,7 @@ const ACTIVE = 'scale-115 bg-white shadow-lg';
           (mouseenter)="active.set(g)"
           [class]="classFor(g)"
           [style.color]="g.color"
-          [style.font-size.rem]="g.size * scale"
+          [style.font-size]="'calc(' + g.size * scale + ' * var(--u, 1rem))'"
         >
           {{ g.text }}
         </span>
@@ -105,7 +106,7 @@ const ACTIVE = 'scale-115 bg-white shadow-lg';
 
     <section
       aria-labelledby="welcome-title"
-      class="relative overflow-hidden bg-[radial-gradient(ellipse_at_center,_#ffffff_0%,_#ffffff_38%,_#f4f6f9_100%)]"
+      class="relative flex flex-1 flex-col overflow-hidden bg-[radial-gradient(ellipse_at_center,_#ffffff_0%,_#ffffff_38%,_#f4f6f9_100%)]"
     >
       <h1 id="welcome-title" class="sr-only">Newcomer Compass</h1>
 
@@ -128,12 +129,21 @@ const ACTIVE = 'scale-115 bg-white shadow-lg';
         </ul>
       </div>
 
-      <!-- Wide screens: a tight ring of greetings around the logo, which sits dead centre. -->
-      <div class="hidden py-6 lg:block">
-        <div class="relative mx-auto h-[42rem] w-full max-w-6xl" (mouseleave)="resetHighlight()">
+      <!--
+        Wide screens: a tight ring of greetings around the logo, which sits dead centre.
+        The stage takes whatever height the screen has left (up to 42rem) so the page
+        never scrolls; --u is 1rem at full height and shrinks with it, scaling the logo,
+        the greetings and the gap between them together.
+      -->
+      <div class="relative hidden min-h-[27rem] flex-1 lg:block">
+        <!-- Absolute, so its height is settled before cqh is measured (a flex-grown size container reads as 0). -->
+        <div
+          class="absolute inset-x-0 inset-y-6 mx-auto my-auto max-h-[42rem] w-full max-w-6xl [container-type:size] [--u:min(1rem,calc(100cqh/42))]"
+          (mouseleave)="resetHighlight()"
+        >
           <div class="absolute top-1/2 left-1/2 isolate -translate-x-1/2 -translate-y-1/2">
             <span class="absolute inset-0 -z-10 scale-125 rounded-full bg-white blur-2xl" aria-hidden="true"></span>
-            <app-logo-mark label="Newcomer Compass" class="relative size-64 animate-[nc-float_6s_ease-in-out_infinite]" />
+            <app-logo-mark label="Newcomer Compass" class="relative size-[calc(16*var(--u))] animate-[nc-float_6s_ease-in-out_infinite]" />
           </div>
           <ul>
             @for (g of greetings; track g.text; let i = $index) {
@@ -176,10 +186,10 @@ export class Welcome {
     return g === this.active() ? `${WORD} ${ACTIVE}` : WORD;
   }
 
-  /** The logo is 16rem across; greetings beside it keep a 1.5rem gap from its edge. */
+  /** The logo is 16u across; greetings beside it keep a 1.5u gap from its edge. */
   protected leftFor(g: Greeting): string {
-    if (g.beside === 'left') return 'calc(50% - 9.5rem)';
-    if (g.beside === 'right') return 'calc(50% + 9.5rem)';
+    if (g.beside === 'left') return 'calc(50% - 9.5 * var(--u))';
+    if (g.beside === 'right') return 'calc(50% + 9.5 * var(--u))';
     return `${g.x}%`;
   }
 
