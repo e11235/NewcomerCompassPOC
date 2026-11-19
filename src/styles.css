@@ -129,6 +129,13 @@
   transform: scaleX(-1);
 }
 
+/* The roadmap chat panel (24rem) is docked to the end edge; keep the page clear of it where there is room. */
+@media screen and (min-width: 64rem) {
+  html.chat-docked body {
+    padding-inline-end: 24rem;
+  }
+}
+
 .print-only {
   display: none;
 }

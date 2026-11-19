@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { sharesIdentifier } from '../../../engine/chat-matcher';
 import { I18n } from '../../../i18n/i18n';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -40,8 +41,8 @@ function safeResult(result: ChatResult): ChatResult {
 }
 
 /**
- * A pop-out chat window on the roadmap page that answers questions about the Temporary Foreign
- * Worker Program from three official canada.ca pages, through the app's /api/chat function.
+ * A full-height chat panel docked to the end edge of the roadmap page. It answers questions about
+ * the Temporary Foreign Worker Program from three official canada.ca pages, through the app's /api/chat function.
  * Answers are plain text ({{ }} interpolation only, never innerHTML) followed by the verified
  * quotes they rest on; links come from the server's allowlist. Messages that look like personal
  * identifiers are not sent. The conversation is kept in memory only, for as long as the page is open.
@@ -56,7 +57,7 @@ function safeResult(result: ChatResult): ChatResult {
       <section
         role="dialog"
         aria-labelledby="roadmap-chat-title"
-        class="fixed inset-x-0 bottom-0 z-40 flex h-[min(32rem,85dvh)] flex-col overflow-hidden rounded-t-2xl border bg-background shadow-2xl animate-[nc-fade-in_200ms_ease-out] sm:inset-x-auto sm:end-6 sm:bottom-24 sm:w-96 sm:rounded-2xl"
+        class="fixed inset-y-0 end-0 z-40 flex w-full flex-col overflow-hidden border-s bg-background shadow-2xl animate-[nc-fade-in_200ms_ease-out] sm:w-96"
       >
         <header class="flex items-center justify-between gap-2 bg-[#26374a] px-4 py-3 text-white">
           <h2 id="roadmap-chat-title" class="flex items-center gap-2 font-semibold">
@@ -160,7 +161,7 @@ function safeResult(result: ChatResult): ChatResult {
       #launcher
       type="button"
       class="fixed end-6 bottom-6 z-40 inline-flex size-14 items-center justify-center rounded-full bg-[#26374a] text-white shadow-lg transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      [class.max-sm:hidden]="open()"
+      [hidden]="open()"
       [attr.aria-expanded]="open()"
       [attr.aria-label]="open() ? t().close : t().roadmapChatOpen"
       (click)="open() ? close() : show()"
@@ -197,6 +198,13 @@ export class RoadmapChat {
   private readonly input = viewChild<ElementRef<HTMLInputElement>>('input');
   private readonly launcher = viewChild.required<ElementRef<HTMLButtonElement>>('launcher');
 
+  constructor() {
+    // While the panel is open, styles.css makes room for it on wide screens so it doesn't cover the page.
+    const root = inject(DOCUMENT).documentElement;
+    effect(() => root.classList.toggle('chat-docked', this.open()));
+    inject(DestroyRef).onDestroy(() => root.classList.remove('chat-docked'));
+  }
+
   protected show(): void {
     this.open.set(true);
     requestAnimationFrame(() => this.input()?.nativeElement.focus());
@@ -205,7 +213,7 @@ export class RoadmapChat {
   close(): void {
     if (!this.open()) return;
     this.open.set(false);
-    // The launcher is hidden on small screens while the window is open, so focus it after it reappears.
+    // The launcher is hidden while the panel is open, so focus it after it reappears.
     requestAnimationFrame(() => this.launcher().nativeElement.focus());
   }
 
