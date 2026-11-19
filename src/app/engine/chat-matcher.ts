@@ -70,6 +70,17 @@ export function detectIdentifier(text: string): IdentifierKind | null {
   return null;
 }
 
+/**
+ * True when a question to the guide (the roadmap chat, or the guided chat's "Still unclear?"
+ * box) contains an actual personal identifier. Unlike typed answers, merely naming a document
+ * ("How do I renew my passport?") is fine in a question, so keyword-only matches need digits to
+ * count, except for email addresses and "my name is …".
+ */
+export function sharesIdentifier(text: string): boolean {
+  const kind = detectIdentifier(text);
+  return kind === 'email' || kind === 'name' || (kind !== null && /\d/.test(text));
+}
+
 export type CityCheck =
   | { ok: true; value: string }
   | { ok: false; reason: 'empty' | 'tooPrecise' | 'tooLong' }

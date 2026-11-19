@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -10,9 +11,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AnswerValue, Question } from '../../content/types';
-import { answerText, checkCity, interpretTyped, type IdentifierKind } from '../../engine/chat-matcher';
+import { answerText, checkCity, interpretTyped, sharesIdentifier, type IdentifierKind } from '../../engine/chat-matcher';
 import { I18n } from '../../i18n/i18n';
+import { chatFailure, FAILURE_MESSAGES } from '../../services/chat-api';
+import { GuideHelpApi, MAX_HELP_CHARS, staticMeaning } from '../../services/guide-help-api';
 import { Icon } from '../../shared/icon';
 import { LogoMark } from '../../shared/logo';
 import { JourneyStore } from '../../state/journey-store';
@@ -45,12 +49,23 @@ const pillClass = (pressed: boolean) =>
     pressed ? 'border-[#26374a] bg-[#26374a] text-white' : 'border-[#26374a]/40 bg-background hover:border-[#26374a] hover:bg-accent'
   }`;
 
+/** "What does this mean?": outlined, so it is never mistaken for an answer. */
+const helpPillClass =
+  'inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-dashed border-[#26374a]/60 bg-transparent px-4 py-1.5 text-start text-base font-medium text-[#26374a] transition-colors hover:border-[#26374a] hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
+
 type Reply =
   | { kind: 'identifier'; what: IdentifierKind }
   | { kind: 'cityError'; message: string }
   | { kind: 'unclear'; foreignTax?: boolean }
-  | { kind: 'why' }
   | { kind: 'confirm'; value: string };
+
+/**
+ * One message in the "What does this mean?" thread. Explanations are plain text, shown with
+ * interpolation only. `lang` marks the English-only static text when the page is in another language.
+ */
+type HelpMessage =
+  | { from: 'person'; text: string }
+  | { from: 'guide'; text: string; lang?: string; warn?: boolean };
 
 /** The current question in the chat: answer buttons, plus a box to type a short answer. */
 @Component({
@@ -77,11 +92,6 @@ type Reply =
       @case ('unclear') {
         <app-guide-says><p>{{ foreignTax() ? t().chatForeignTax : t().chatUnclear }}</p></app-guide-says>
       }
-      @case ('why') {
-        @if (q.why) {
-          <app-guide-says><p class="text-sm">{{ i18n.pick(q.why) }}</p></app-guide-says>
-        }
-      }
       @case ('confirm') {
         <app-guide-says>
           <p>{{ t().chatUnderstood(confirmText()) }}</p>
@@ -95,7 +105,29 @@ type Reply =
       }
     }
 
-    <div role="group" aria-labelledby="chat-current" class="flex flex-wrap gap-2 ps-0 sm:ps-11">
+    @for (m of help(); track $index) {
+      @if (m.from === 'person') {
+        <div class="flex justify-end">
+          <p class="max-w-[85%] rounded-2xl rounded-se-sm border bg-background px-4 py-3">
+            <span class="sr-only">{{ t().guideHelpYouAsked }}: </span>{{ m.text }}
+          </p>
+        </div>
+      } @else {
+        <app-guide-says [tone]="m.warn ? 'warn' : undefined"><p class="text-sm" [attr.lang]="m.lang">{{ m.text }}</p></app-guide-says>
+      }
+    }
+    @if (helpPending()) {
+      <app-guide-says>
+        <span class="flex h-5 items-center gap-1" aria-hidden="true">
+          <span class="size-1.5 animate-bounce rounded-full bg-muted-foreground"></span>
+          <span class="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]"></span>
+          <span class="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]"></span>
+        </span>
+        <span class="sr-only">{{ t().roadmapChatThinking }}</span>
+      </app-guide-says>
+    }
+
+    <div #pills role="group" aria-labelledby="chat-current" class="flex scroll-mb-40 flex-wrap gap-2 ps-0 sm:ps-11">
       @for (o of q.options ?? []; track o.value) {
         <button type="button" [attr.aria-pressed]="value() === o.value" (click)="commit.emit(o.value)" [class]="pill(value() === o.value)">
           {{ i18n.pick(o.label) }}
@@ -108,14 +140,50 @@ type Reply =
       }
     </div>
 
-    <div class="flex flex-wrap gap-x-4 gap-y-1 ps-0 text-sm sm:ps-11">
-      @if (q.why) {
-        <button type="button" class="link min-h-10" (click)="reply.set({ kind: 'why' })">{{ t().whatDoesThisMean }}</button>
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 ps-0 text-sm sm:ps-11">
+      @if (meaning()) {
+        <button type="button" [class]="helpPill" [attr.aria-expanded]="helpOpen()" aria-controls="chat-help" (click)="showMeaning()">
+          <app-icon name="circle-question-mark" class="size-4" />{{ t().whatDoesThisMean }}
+        </button>
       }
       <button type="button" class="link inline-flex min-h-10 items-center gap-1" (click)="store.helpOpen.set(true)">
         <app-icon name="life-buoy" class="size-4" />{{ t().talkPerson }}
       </button>
     </div>
+
+    @if (helpOpen()) {
+      <form
+        id="chat-help"
+        class="ms-0 space-y-2 rounded-2xl border-2 border-dashed border-[#26374a]/30 p-3 sm:ms-11"
+        (submit)="$event.preventDefault(); askHelp()"
+      >
+        <label for="chat-help-text" class="block text-sm font-semibold">{{ t().guideHelpLabel }}</label>
+        <div class="flex gap-2">
+          <input
+            #helpInput
+            id="chat-help-text"
+            class="field-input h-11 flex-1 rounded-full text-base md:text-base"
+            [value]="helpTyped()"
+            (input)="helpTyped.set($any($event.target).value)"
+            [disabled]="helpPending()"
+            autocomplete="off"
+            [attr.maxlength]="maxHelpChars"
+            aria-describedby="chat-help-notice"
+          />
+          <button
+            type="submit"
+            class="btn btn-primary btn-icon size-11 rounded-full"
+            [attr.aria-label]="t().send"
+            [disabled]="!helpTyped().trim() || helpPending()"
+          >
+            <app-icon name="send-horizontal" class="flip-rtl" />
+          </button>
+        </div>
+        <p id="chat-help-notice" class="flex items-start gap-1.5 text-xs text-muted-foreground">
+          <app-icon name="shield-check" class="mt-px size-3.5 shrink-0" />{{ t().guideHelpNotice }}
+        </p>
+      </form>
+    }
 
     <form class="flex gap-2 border-t pt-4" (submit)="$event.preventDefault(); send()">
       <label for="chat-text" class="sr-only">{{ t().chatTypeLabel }}</label>
@@ -148,7 +216,21 @@ export class ChatQuestion {
   protected readonly reply = signal<Reply | null>(null);
   protected readonly typed = signal('');
   private readonly prompt = viewChild.required<ElementRef<HTMLElement>>('prompt');
+  private readonly pills = viewChild.required<ElementRef<HTMLElement>>('pills');
+  private readonly helpInput = viewChild<ElementRef<HTMLInputElement>>('helpInput');
   protected readonly pill = pillClass;
+  protected readonly helpPill = helpPillClass;
+
+  private readonly helpApi = inject(GuideHelpApi);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly maxHelpChars = MAX_HELP_CHARS;
+  /** The static explanation of this question (guide/explanations.json). */
+  protected readonly meaning = computed(() => staticMeaning(this.question().id));
+  /** The "Still unclear?" box: shown after "What does this mean?", gone once the question is answered. */
+  protected readonly helpOpen = signal(false);
+  protected readonly help = signal<HelpMessage[]>([]);
+  protected readonly helpTyped = signal('');
+  protected readonly helpPending = signal(false);
 
   protected readonly identifierWhat = computed(() => {
     const r = this.reply();
@@ -200,7 +282,7 @@ export class ChatQuestion {
         this.reply.set({ kind: 'confirm', value: result.value });
         break;
       case 'why':
-        this.reply.set({ kind: 'why' });
+        this.showMeaning();
         break;
       case 'help':
         this.store.helpOpen.set(true);
@@ -208,6 +290,65 @@ export class ChatQuestion {
       default:
         this.reply.set({ kind: 'unclear', foreignTax: result.foreignTax });
     }
+  }
+
+  /** "What does this mean?": the static explanation (no network call), then the help box and the pills again. */
+  protected showMeaning(): void {
+    const text = this.meaning();
+    if (!text) return;
+    this.reply.set(null);
+    const alreadyShown = this.help().some((m) => m.from === 'guide' && m.text === text);
+    if (!alreadyShown) {
+      // The explanations are written in English only for now.
+      this.help.update((list) => [...list, { from: 'guide', text, lang: this.i18n.lang() === 'en' ? undefined : 'en' }]);
+    }
+    this.helpOpen.set(true);
+    this.revealPills(true);
+  }
+
+  /** Sends a clarification question to /api/guide-help. Never an answer: answers are only ever pill taps. */
+  protected askHelp(): void {
+    const text = this.helpTyped().trim();
+    if (!text || this.helpPending()) return;
+    if (sharesIdentifier(text)) {
+      // Not sent. The text stays in the box so the person can remove the details.
+      this.help.update((list) => [...list, { from: 'guide', text: this.t().roadmapChatPersonalInfo, warn: true }]);
+      this.revealPills(true);
+      return;
+    }
+    this.helpTyped.set('');
+    const input = this.helpInput()?.nativeElement;
+    if (input) input.value = '';
+    this.help.update((list) => [...list, { from: 'person', text }]);
+    this.helpPending.set(true);
+    this.revealPills(false);
+    this.helpApi
+      .ask(this.question().id, text)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          const answer = typeof result?.answer === 'string' ? result.answer : '';
+          this.help.update((list) => [
+            ...list,
+            answer ? { from: 'guide', text: answer } : { from: 'guide', text: this.t().roadmapChatUnavailable, warn: true },
+          ]);
+          this.helpPending.set(false);
+          this.revealPills(true);
+        },
+        error: (err: unknown) => {
+          this.help.update((list) => [...list, { from: 'guide', text: this.t()[FAILURE_MESSAGES[chatFailure(err)]], warn: true }]);
+          this.helpPending.set(false);
+          this.revealPills(true);
+        },
+      });
+  }
+
+  /** Brings the answer pills (and the help box under them) back into view after an explanation. */
+  private revealPills(focusHelp: boolean): void {
+    requestAnimationFrame(() => {
+      if (focusHelp) this.helpInput()?.nativeElement.focus({ preventScroll: true });
+      this.pills().nativeElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
   }
 }
 

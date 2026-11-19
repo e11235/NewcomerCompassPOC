@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type { Observable } from 'rxjs';
+import type { ExtraStrings } from '../i18n/extra-strings';
 
 /** Matches the server's limit (api/chat.ts). */
 export const MAX_QUESTION_CHARS = 1000;
@@ -28,6 +29,17 @@ export type ChatResult =
  * - unavailable: anything else (the language model provider failed)
  */
 export type ChatFailure = 'offline' | 'unreachable' | 'busy' | 'timeout' | 'rejected' | 'not_set_up' | 'unavailable';
+
+/** The message shown for each kind of failure. */
+export const FAILURE_MESSAGES: Record<ChatFailure, keyof ExtraStrings> = {
+  offline: 'roadmapChatOffline',
+  unreachable: 'roadmapChatUnreachable',
+  busy: 'roadmapChatBusy',
+  timeout: 'roadmapChatTimeout',
+  rejected: 'roadmapChatRejected',
+  not_set_up: 'roadmapChatNotSetUp',
+  unavailable: 'roadmapChatUnavailable',
+};
 
 /** Failures where asking the same question again cannot succeed until something else changes. */
 const NOT_RETRYABLE: ReadonlySet<ChatFailure> = new Set(['rejected', 'not_set_up']);

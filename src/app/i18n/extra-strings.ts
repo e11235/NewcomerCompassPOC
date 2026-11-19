@@ -30,6 +30,9 @@ export interface ExtraStrings {
   roadmapChatNotFound: string;
   roadmapChatDisclaimer: string;
   roadmapChatNewTab: string;
+  guideHelpLabel: string;
+  guideHelpNotice: string;
+  guideHelpYouAsked: string;
 }
 
 export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
@@ -59,6 +62,9 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     roadmapChatNotFound: "I couldn't find that in the official pages. You can read them here:",
     roadmapChatDisclaimer: "Answers are based only on these Government of Canada pages and aren't legal advice.",
     roadmapChatNewTab: "(opens in a new tab)",
+    guideHelpLabel: "Still unclear? Ask a question about this step",
+    guideHelpNotice: "Please don't share personal details when asking for help.",
+    guideHelpYouAsked: "You asked",
   },
   fr: {
     continueIn: 'Continuer en français',
@@ -86,6 +92,9 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     roadmapChatNotFound: "Je n'ai pas trouvé cette information dans les pages officielles. Vous pouvez les consulter ici :",
     roadmapChatDisclaimer: "Les réponses sont fondées uniquement sur ces pages du gouvernement du Canada et ne constituent pas un avis juridique.",
     roadmapChatNewTab: "(s'ouvre dans un nouvel onglet)",
+    guideHelpLabel: "Toujours pas clair? Posez une question sur cette étape",
+    guideHelpNotice: "Veuillez ne pas communiquer de renseignements personnels lorsque vous demandez de l'aide.",
+    guideHelpYouAsked: "Vous avez demandé",
   },
   ar: {
     continueIn: 'المتابعة بالعربية',
@@ -112,5 +121,8 @@ export const EXTRA_STRINGS: Record<LanguageCode, ExtraStrings> = {
     roadmapChatNotFound: "لم أجد ذلك في الصفحات الرسمية. يمكنك قراءتها هنا:",
     roadmapChatDisclaimer: "تستند الإجابات فقط إلى صفحات حكومة كندا هذه، وهي ليست استشارة قانونية.",
     roadmapChatNewTab: "(يُفتح في علامة تبويب جديدة)",
+    guideHelpLabel: "ما زال الأمر غير واضح؟ اطرح سؤالًا عن هذه الخطوة",
+    guideHelpNotice: "يُرجى عدم مشاركة تفاصيل شخصية عند طلب المساعدة.",
+    guideHelpYouAsked: "سألت",
   },
 };

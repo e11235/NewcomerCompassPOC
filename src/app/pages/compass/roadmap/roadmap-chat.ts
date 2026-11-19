@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { detectIdentifier } from '../../../engine/chat-matcher';
-import type { ExtraStrings } from '../../../i18n/extra-strings';
+import { sharesIdentifier } from '../../../engine/chat-matcher';
 import { I18n } from '../../../i18n/i18n';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   canRetry,
   ChatApi,
   chatFailure,
+  FAILURE_MESSAGES,
   isOfficialLink,
   MAX_QUESTION_CHARS,
   type ChatFailure,
@@ -15,26 +15,6 @@ import {
 import { Icon } from '../../../shared/icon';
 import { GuideSays } from '../guided-chat';
 
-/**
- * True when a question contains an actual personal identifier. Unlike the guided chat, merely
- * naming a document ("How do I renew my passport?") is fine here, so keyword-only matches
- * need digits to count, except for email addresses and "my name is …".
- */
-function sharesIdentifier(text: string): boolean {
-  const kind = detectIdentifier(text);
-  return kind === 'email' || kind === 'name' || (kind !== null && /\d/.test(text));
-}
-
-/** The message shown for each kind of failure. */
-const FAILURE_MESSAGES: Record<ChatFailure, keyof ExtraStrings> = {
-  offline: 'roadmapChatOffline',
-  unreachable: 'roadmapChatUnreachable',
-  busy: 'roadmapChatBusy',
-  timeout: 'roadmapChatTimeout',
-  rejected: 'roadmapChatRejected',
-  not_set_up: 'roadmapChatNotSetUp',
-  unavailable: 'roadmapChatUnavailable',
-};
 
 /** Logs the technical reason for developers; the person sees a plain-language message instead. */
 function logFailure(err: unknown): void {

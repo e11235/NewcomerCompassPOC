@@ -1,0 +1,218 @@
+[
+  {
+    "id": "province",
+    "question": "Which province or territory do you live in?",
+    "options": [
+      "Alberta",
+      "British Columbia",
+      "Manitoba",
+      "New Brunswick",
+      "Newfoundland and Labrador",
+      "Northwest Territories",
+      "Nova Scotia",
+      "Nunavut",
+      "Ontario",
+      "Prince Edward Island",
+      "Quebec",
+      "Saskatchewan",
+      "Yukon",
+      "I'm not sure"
+    ],
+    "meaning": "Canada is divided into 10 provinces and 3 territories. Pick the one where you live now. If you live in a city, pick the province or territory that the city is in. If you don't know, choose \"I'm not sure\".",
+    "whyWeAsk": "Some supports are run by a province or territory. Your answer decides which of those supports we show you.",
+    "examples": [
+      "If you live in Ottawa or Toronto, choose \"Ontario\".",
+      "If you live in Montreal, choose \"Quebec\".",
+      "If you just moved, choose the place where you live now, not where you lived before."
+    ],
+    "notCovered": [
+      "Which provincial supports you can get",
+      "How much a provincial support pays",
+      "How to move to another province",
+      "Health insurance rules in each province"
+    ]
+  },
+  {
+    "id": "city",
+    "question": "What city or community do you live in?",
+    "options": ["Skip this question"],
+    "meaning": "Type the name of the city, town or community where you live. Only type the name. Do not type your street address, postal code or apartment number. This question is optional. You can tap \"Skip this question\".",
+    "whyWeAsk": "We use your city only to show places near you on the map. It does not change which supports may apply to you.",
+    "examples": [
+      "Type \"Ottawa\", not your street address.",
+      "If you live in a small town near a city, you can type the town's name.",
+      "If you don't want to answer, tap \"Skip this question\"."
+    ],
+    "notCovered": [
+      "Which supports you can get in your city",
+      "Directions or opening hours for a specific office",
+      "Housing or rent in your city"
+    ]
+  },
+  {
+    "id": "status",
+    "question": "Which option best describes your current immigration status?",
+    "options": [
+      "Permanent resident",
+      "Protected person or resettled refugee",
+      "Refugee claimant",
+      "Work permit holder",
+      "Study permit holder",
+      "Other / I'm not sure"
+    ],
+    "meaning": "This asks what kind of permission you have to be in Canada right now. Pick the one group that fits you today. Permanent resident: you have permanent resident (PR) status. Protected person or resettled refugee: your refugee claim was accepted, or you came to Canada as a resettled refugee. Refugee claimant: you asked for refugee protection and are waiting for a decision. Work permit or study permit holder: you are in Canada with that permit. If none of these fit, or you don't know, choose \"Other / I'm not sure\".",
+    "whyWeAsk": "Some programs are only open to some statuses. We use your answer so we don't show supports that may not apply to you. We do not check your answer or share it.",
+    "examples": [
+      "If you have a PR card, choose \"Permanent resident\".",
+      "If you asked for asylum and are waiting for your hearing, choose \"Refugee claimant\".",
+      "If you are a student with a study permit, choose \"Study permit holder\".",
+      "Don't type your UCI or permit number. We never ask for them."
+    ],
+    "notCovered": [
+      "Which status you have or should have",
+      "How to apply for permanent residence or a permit",
+      "Refugee claims, hearings or appeals",
+      "Which supports your status lets you get",
+      "Legal or immigration advice"
+    ]
+  },
+  {
+    "id": "hasSin",
+    "question": "Do you currently have a Social Insurance Number (SIN)?",
+    "options": ["Yes", "No", "I'm not sure"],
+    "meaning": "A Social Insurance Number (SIN) is a 9-digit number from the Government of Canada. This asks only if you have one. Choose \"Yes\" if you have one, \"No\" if you don't, or \"I'm not sure\". Never type your SIN here.",
+    "whyWeAsk": "You may need a valid SIN to work and to get many government payments. If you don't have one, getting it is often the first step.",
+    "examples": [
+      "If you got a SIN after you arrived, choose \"Yes\".",
+      "If you have never applied for a SIN, choose \"No\".",
+      "Don't type the number. Just tap an answer."
+    ],
+    "notCovered": [
+      "How to apply for a SIN",
+      "What to do if your SIN was lost or stolen",
+      "Whether you are allowed to work",
+      "Which payments you can get"
+    ]
+  },
+  {
+    "id": "sinCurrent",
+    "question": "Is your SIN still valid?",
+    "options": ["Yes, it is valid", "No, it has expired or will expire soon", "I'm not sure"],
+    "meaning": "\"Valid\" means your SIN can still be used. A SIN that starts with 9 usually has an end date. This date is linked to your immigration document, like your work or study permit. Choose \"No\" if that date has passed or is coming soon. If you don't know, choose \"I'm not sure\".",
+    "whyWeAsk": "If your SIN has expired, your payments and work can stop. You may need to update it before other steps.",
+    "examples": [
+      "If your SIN starts with 9 and your permit ends next month, choose \"No, it has expired or will expire soon\".",
+      "If your SIN does not start with 9, it usually has no end date.",
+      "Don't type your SIN. Just tap an answer."
+    ],
+    "notCovered": [
+      "How to renew or update your SIN",
+      "How to extend your permit",
+      "Whether you can keep working after your permit ends",
+      "Legal or immigration advice"
+    ]
+  },
+  {
+    "id": "filedTax",
+    "question": "Have you ever filed a Canadian income tax return?",
+    "options": ["Yes", "No", "I'm not sure"],
+    "meaning": "Filing a tax return means sending a form about your income to the Canada Revenue Agency (CRA). This question is only about Canada. Choose \"Yes\" if you have sent a Canadian return at least once. It still counts if someone helped you, like a tax clinic. Taxes you filed in another country do not count.",
+    "whyWeAsk": "Many benefits and credits are calculated from your Canadian tax return. If you have not filed one yet, filing may need to come first.",
+    "examples": [
+      "If you filed taxes only in your home country, choose \"No\".",
+      "If a free tax clinic in Canada filed your return for you, choose \"Yes\".",
+      "If you are not sure whether a return was sent, choose \"I'm not sure\"."
+    ],
+    "notCovered": [
+      "How to file a tax return",
+      "How much tax you owe or will get back",
+      "Which benefits or credits you can get",
+      "Tax rules for income from other countries"
+    ]
+  },
+  {
+    "id": "workStatus",
+    "question": "Which option best describes your work situation right now?",
+    "options": [
+      "I'm working in Canada",
+      "I'm looking for work in Canada",
+      "I worked before coming to Canada but haven't worked in Canada yet",
+      "I haven't worked before and I'm looking for my first job",
+      "I'm studying and may want to work",
+      "I'm not working and I'm not currently looking for work",
+      "I'm not sure"
+    ],
+    "meaning": "This asks what you are doing about work today. Pick the one answer that fits you best right now. Working in Canada: you have a job in Canada. Looking for work: you want a job in Canada and are trying to find one. Worked before coming to Canada: you had jobs in another country but not yet in Canada. First job: you have never had a job. Studying: you are a student. Not looking: you don't have a job and are not trying to find one now.",
+    "whyWeAsk": "Your answer decides which work supports we show, such as Employment Insurance or employment services. It does not tell us if you are allowed to work. We ask that in a separate question.",
+    "examples": [
+      "If you had a job back home and just arrived, choose \"I worked before coming to Canada but haven't worked in Canada yet\".",
+      "If you are a student who wants a part-time job, choose \"I'm studying and may want to work\".",
+      "You don't need to tell us your employer, job title or pay."
+    ],
+    "notCovered": [
+      "Whether you can get Employment Insurance",
+      "How to find a job",
+      "Whether you are allowed to work",
+      "Work rights or problems at work"
+    ]
+  },
+  {
+    "id": "workAuth",
+    "question": "Are you currently allowed to work in Canada?",
+    "options": ["Yes", "No", "I'm not sure"],
+    "meaning": "This asks if you have permission to work in Canada today. Choose \"Yes\" if you know you are allowed to work. Choose \"No\" if you know you are not. If you don't know, choose \"I'm not sure\". We will show you where you can check.",
+    "whyWeAsk": "Some employment services depend on whether you are allowed to work. We never decide this from your other answers. This tool does not give a legal answer.",
+    "examples": [
+      "If you are not sure what your permit allows, choose \"I'm not sure\".",
+      "Don't type your permit number. Just tap an answer."
+    ],
+    "notCovered": [
+      "Whether you are allowed to work",
+      "What your permit lets you do",
+      "How to get permission to work",
+      "Legal or immigration advice"
+    ]
+  },
+  {
+    "id": "children",
+    "question": "How many children under 18 live with you?",
+    "options": ["None", "1", "2", "3 or more", "I prefer not to say"],
+    "meaning": "Count the children who are younger than 18 and who live with you. Do not count children who are 18 or older. Do not count children who live somewhere else. If you have no children under 18 at home, choose \"None\". You can also choose \"I prefer not to say\".",
+    "whyWeAsk": "Some supports are for families with children. Your answer decides if we show those supports.",
+    "examples": [
+      "If your children are 4 and 10 and live with you, choose \"2\".",
+      "If your only child is 19, choose \"None\".",
+      "If your child still lives in another country, don't count them."
+    ],
+    "notCovered": [
+      "Whether you can get child benefits",
+      "How much a child benefit pays",
+      "Child care or school",
+      "Custody or family law"
+    ]
+  },
+  {
+    "id": "income",
+    "question": "About how much income did your household have last year?",
+    "options": [
+      "Under $20,000",
+      "$20,000 to $39,999",
+      "$40,000 to $59,999",
+      "$60,000 or more",
+      "I am not sure or prefer not to say"
+    ],
+    "meaning": "Income is the money you get, like pay from a job. Your household means you and the people you live with as a family, such as a spouse or partner. Add up everyone's income for the whole of last year, before taxes are taken off. A rough guess is enough. If you know a monthly amount, multiply it by 12. If you are not sure, or don't want to say, choose \"I am not sure or prefer not to say\".",
+    "whyWeAsk": "Some supports depend on income. A range helps us say \"may be eligible\" instead of guessing. We never ask for the exact amount.",
+    "examples": [
+      "If you earned about $2,000 a month for the whole year, that is about $24,000. Choose \"$20,000 to $39,999\".",
+      "If you and your partner together earned about $45,000, choose \"$40,000 to $59,999\".",
+      "If you just arrived and are not sure what to count, choose \"I am not sure or prefer not to say\"."
+    ],
+    "notCovered": [
+      "Whether your income lets you get a benefit",
+      "How much a benefit or credit pays",
+      "How income is counted for taxes",
+      "Income limits for any program"
+    ]
+  }
+]

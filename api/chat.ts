@@ -23,6 +23,7 @@ import {
   loadCorpus,
   parseModelAnswer,
 } from './_lib/grounding.js';
+import { completeJson, readLlmConfig } from './_lib/llm.js';
 
 const MAX_QUESTION_CHARS = 1000;
 const MAX_BODY_BYTES = 16 * 1024;
@@ -32,7 +33,7 @@ const PROVIDER_TIMEOUT_MS = 25_000;
 // Checked once at cold start: a corpus that does not match the allowlist fails every request.
 const PAGES = loadCorpus(corpusJson);
 const SYSTEM_PROMPT = buildSystemPrompt(PAGES);
-const RESPONSE_FORMAT = { type: 'json_schema', json_schema: { name: 'grounded_answer', strict: true, schema: answerSchema() } };
+const ANSWER_SCHEMA = answerSchema();
 
 export type ChatErrorCode = 'method_not_allowed' | 'bad_request' | 'payload_too_large' | 'not_configured' | 'upstream_error';
 
@@ -70,12 +71,9 @@ export async function handleChat(request: Request): Promise<Response> {
     return fail(405, 'method_not_allowed', 'Only POST is allowed.', { Allow: 'POST' });
   }
 
-  const baseUrl = process.env['LLM_BASE_URL']?.trim();
-  const apiKey = process.env['LLM_API_KEY']?.trim();
-  const model = process.env['LLM_MODEL']?.trim();
-  if (!baseUrl || !apiKey || !model) {
-    const missing = [!baseUrl && 'LLM_BASE_URL', !apiKey && 'LLM_API_KEY', !model && 'LLM_MODEL'].filter(Boolean);
-    console.error(`[api/chat] Missing environment variables: ${missing.join(', ')}`);
+  const config = readLlmConfig();
+  if ('missing' in config) {
+    console.error(`[api/chat] Missing environment variables: ${config.missing.join(', ')}`);
     return fail(500, 'not_configured', 'The chat service is not configured.');
   }
 
@@ -94,46 +92,19 @@ export async function handleChat(request: Request): Promise<Response> {
   const checked = validateQuestion(body);
   if ('error' in checked) return fail(400, 'bad_request', checked.error);
 
-  let upstream: Response;
-  try {
-    upstream = await fetch(`${baseUrl.replace(/\/+$/, '')}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      // No tools / function calling: the model can only return the JSON answer.
-      body: JSON.stringify({
-        model,
-        temperature: 0,
-        max_tokens: MAX_REPLY_TOKENS,
-        response_format: RESPONSE_FORMAT,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: checked.question },
-        ],
-      }),
-      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
-    });
-  } catch (e) {
-    // Only the error kind is logged: never the question or the provider's response body.
-    console.error(`[api/chat] Provider request failed: ${e instanceof Error ? e.name : 'unknown'}`);
-    return UPSTREAM_FAILED();
-  }
-
-  if (!upstream.ok) {
-    console.error(`[api/chat] Provider returned HTTP ${upstream.status}`);
-    return UPSTREAM_FAILED();
-  }
-
-  let content: unknown;
-  try {
-    const data = (await upstream.json()) as { choices?: { message?: { content?: unknown } }[] };
-    content = data.choices?.[0]?.message?.content;
-  } catch {
-    content = undefined;
-  }
-  if (typeof content !== 'string' || !content.trim()) {
-    console.error('[api/chat] Provider response had no content');
-    return UPSTREAM_FAILED();
-  }
+  const content = await completeJson(
+    config,
+    {
+      system: SYSTEM_PROMPT,
+      user: checked.question,
+      schemaName: 'grounded_answer',
+      schema: ANSWER_SCHEMA,
+      maxTokens: MAX_REPLY_TOKENS,
+      timeoutMs: PROVIDER_TIMEOUT_MS,
+    },
+    'api/chat',
+  );
+  if (content === null) return UPSTREAM_FAILED();
 
   // A reply that is not the expected JSON, or whose citations all fail verification, becomes the
   // "not found in the official pages" fallback rather than an error.
