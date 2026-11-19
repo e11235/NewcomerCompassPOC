@@ -175,7 +175,11 @@ export class RoadmapChat {
   private readonly chatApi = inject(ChatApi);
   protected readonly maxChars = MAX_QUESTION_CHARS;
 
-  protected readonly open = signal(false);
+  /**
+   * Starts open on wider screens (Tailwind's `sm` breakpoint) so the chat is visible as soon as the
+   * roadmap loads; focus is not moved into it. On phones it would cover most of the roadmap, so it starts closed.
+   */
+  protected readonly open = signal(window.matchMedia('(min-width: 40rem)').matches);
   protected readonly typed = signal('');
   protected readonly exchanges = signal<Exchange[]>([]);
   protected readonly pending = signal(false);
