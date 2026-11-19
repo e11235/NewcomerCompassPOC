@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, injec
 import { CONTENT } from '../../content/content-data';
 import { I18n } from '../../i18n/i18n';
 import { Icon } from '../../shared/icon';
-import { LogoLockup } from '../../shared/logo';
 import { JourneyStore, SCREENS, type Screen } from '../../state/journey-store';
 import { GuidedChat } from './guided-chat';
 import { ModeChoice } from './mode-choice';
@@ -17,7 +16,7 @@ import { SituationPicker } from './situation-picker';
  */
 @Component({
   selector: 'app-compass-page',
-  imports: [GuidedChat, Icon, LogoLockup, ModeChoice, QuestionForm, ReviewAnswers, RoadmapView, SituationPicker],
+  imports: [GuidedChat, Icon, ModeChoice, QuestionForm, ReviewAnswers, RoadmapView, SituationPicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto w-full max-w-6xl px-4 py-6 sm:py-8">
@@ -59,7 +58,6 @@ import { SituationPicker } from './situation-picker';
 
       <div id="content" tabindex="-1" class="outline-none">
         @if (store.screen() === 'situation') {
-          <!-- Main page: the full Newcomer Compass logo beside the question. -->
           <div class="no-print flex flex-col-reverse items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div class="max-w-3xl">
               <h1 #heading tabindex="-1" class="text-3xl leading-tight font-bold outline-none sm:text-4xl">{{ t().situationTitle }}</h1>
@@ -68,7 +66,6 @@ import { SituationPicker } from './situation-picker';
                 <p class="mt-2 text-base text-muted-foreground">{{ t().prototypeScope }}</p>
               }
             </div>
-            <app-logo-lockup class="shrink-0 [--mark-size:4.5rem] [--word-size:1.15rem] sm:[--mark-size:6.5rem] sm:[--word-size:1.5rem]" />
           </div>
           <app-situation-picker />
         } @else {

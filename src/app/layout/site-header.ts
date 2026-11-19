@@ -12,7 +12,7 @@ import { JourneyStore } from '../state/journey-store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a
-      href="#content"
+      href="#main"
       class="sr-only z-50 rounded-md bg-background px-4 py-2 font-semibold underline focus:not-sr-only focus:absolute focus:start-2 focus:top-2 focus-visible:outline-2 focus-visible:outline-ring"
       >{{ t().skip }}</a
     >
