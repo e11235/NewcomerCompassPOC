@@ -5,7 +5,8 @@ out what to do first, what comes next and where to go. The roadmap itself is bui
 rules, with no AI; only the optional chat window on the roadmap page asks an LLM, through a small
 serverless function, and it answers only from three official canada.ca pages (see
 [Roadmap chat](#roadmap-chat-grounded-llm), and [How Newcomer Compass uses AI](docs/AI-INTEGRATION.md) for a
-plain-language summary). The content is synthetic demonstration data, and links and phone numbers must be confirmed against official
+plain-language summary). See [the accessibility review](docs/ACCESSIBILITY.md) for its WCAG status and
+planned fixes. The content is synthetic demonstration data, and links and phone numbers must be confirmed against official
 sources before use.
 
 This branch (`feature/compass-click-through`) follows the click-through prototype
